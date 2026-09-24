@@ -172,6 +172,23 @@ Le dictionnaire (`dictionary\dict_ff_latin.json`) est tiré de deux sources :
 
 ---
 
+## ✍️ Code signing policy — Politique de signature de code
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+- **Committers and reviewers** (auteurs et relecteurs) : [leonbathie](https://github.com/leonbathie), members of this repository with write access.
+- **Approvers** (approbateurs) : [leonbathie](https://github.com/leonbathie).
+
+Only the files built by GitHub Actions from this repository (`.github/workflows/installateur.yml`) are signed: `ClavierPulaar.exe`, `correcteur_pulaar.dll` and `Setup_Clavier_Pulaar.exe`. Every signing request is approved by hand. The keyboard layout files `fulffaz.dll` and `fulffqw.dll`, built from `fulffaz.klc` and `fulffqw.klc` with Microsoft Keyboard Layout Creator, are shipped unsigned inside the installer.
+
+Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont signés, et chaque signature est approuvée à la main. Les dispositions de clavier `fulffaz.dll` et `fulffqw.dll` sont livrées sans signature dans l'installateur.
+
+**Privacy policy** : This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The words it learns stay on the computer (`%APPDATA%\ClavierPulaar`).
+
+**Vie privée** : ce programme ne transmet aucune information à d'autres systèmes en réseau, sauf demande expresse de l'utilisateur. Les mots qu'il retient restent sur l'ordinateur.
+
+---
+
 ## 📄 Licence
 
 Code distribué sous licence **MIT**. Les données du dictionnaire suivent les licences de leurs sources ci-dessus (CC-BY-4.0 pour ARPRIM : citer ses auteurs en cas de réutilisation).

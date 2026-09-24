@@ -1,0 +1,124 @@
+# Fabrique l'installateur du Clavier Pulaar sur les machines Windows de GitHub,
+# à partir du code de ce dépôt, et le fait signer par SignPath Foundation.
+#
+# - À chaque envoi sur main : fabrication seule, pour vérifier que tout se
+#   construit ; l'installateur non signé est gardé dans les artefacts du run.
+# - À la main (onglet Actions) ou pour une version (étiquette v2.1.0, v2.2.0...) :
+#   fabrication, puis signature si SignPath est configuré (variable
+#   SIGNPATH_ORGANIZATION_ID et secret SIGNPATH_API_TOKEN). Chaque signature
+#   attend qu'un approbateur l'accepte dans SignPath : d'abord le programme,
+#   puis l'installateur qui le contient.
+# - Pour une version, l'installateur est publié dans « Releases ».
+name: Installateur
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  installateur:
+    runs-on: windows-latest
+    env:
+      SIGNER: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && (github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')) }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Outils de fabrication
+        run: |
+          python -m pip install --disable-pip-version-check pynput pyinstaller
+          choco install innosetup --no-progress -y
+
+      - name: Correcteur orthographique (Rust)
+        run: |
+          cargo build --release --manifest-path correcteur_pulaar/Cargo.toml
+          Copy-Item correcteur_pulaar/target/release/correcteur_pulaar.dll correcteur_pulaar/correcteur_pulaar.dll -Force
+
+      - name: ClavierPulaar.exe
+        run: ./installateur/fabriquer_installateur.ps1 -Etape programme
+
+      # --- Signature du programme et du correcteur -----------------------
+      - name: Fichiers à signer
+        if: env.SIGNER == 'true'
+        run: |
+          New-Item -ItemType Directory a_signer | Out-Null
+          Copy-Item construction/dist/ClavierPulaar/ClavierPulaar.exe, correcteur_pulaar/correcteur_pulaar.dll a_signer/
+
+      - name: Programme non signé
+        id: programme-non-signe
+        if: env.SIGNER == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: programme-non-signe
+          path: a_signer/
+
+      - name: Signature du programme (SignPath)
+        if: env.SIGNER == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'clavier-pulaar' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: programme
+          github-artifact-id: ${{ steps.programme-non-signe.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: programme-signe
+
+      - name: Programme signé à sa place
+        if: env.SIGNER == 'true'
+        run: |
+          Copy-Item programme-signe/ClavierPulaar.exe construction/dist/ClavierPulaar/ -Force
+          Copy-Item programme-signe/correcteur_pulaar.dll correcteur_pulaar/ -Force
+
+      # --- Installateur -----------------------------------------------------
+      - name: Setup_Clavier_Pulaar.exe
+        run: ./installateur/fabriquer_installateur.ps1 -Etape installateur
+
+      - name: Installateur non signé
+        id: installateur-non-signe
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.SIGNER == 'true' && 'installateur-non-signe' || 'Setup_Clavier_Pulaar' }}
+          path: Setup_Clavier_Pulaar.exe
+
+      - name: Signature de l'installateur (SignPath)
+        if: env.SIGNER == 'true'
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'clavier-pulaar' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: installateur
+          github-artifact-id: ${{ steps.installateur-non-signe.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: installateur-signe
+
+      - name: Installateur signé
+        if: env.SIGNER == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: Setup_Clavier_Pulaar
+          path: installateur-signe/Setup_Clavier_Pulaar.exe
+
+      # --- Publication d'une version ----------------------------------------
+      - name: Publier la version
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $setup = if ($env:SIGNER -eq 'true') { 'installateur-signe/Setup_Clavier_Pulaar.exe' } else { 'Setup_Clavier_Pulaar.exe' }
+          $notes = "Installateur du Clavier Pulaar (Fulfulde) pour Windows 10 et 11. Lancez Setup_Clavier_Pulaar.exe, puis choisissez « Pulaar (Fulfulde) AZERTY » avec Win + Espace."
+          gh release create $env:GITHUB_REF_NAME $setup --title "Clavier Pulaar $env:GITHUB_REF_NAME" --notes $notes
