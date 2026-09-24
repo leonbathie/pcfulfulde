@@ -32,6 +32,23 @@ Choisissez **Pulaar** avec Win + Espace, puis écrivez dans n'importe quelle app
 - **Correction automatique** : à l'espace ou à la ponctuation, un mot inconnu tout proche d'un mot courant est corrigé (`fulbe` → `fulɓe`, `be` → `ɓe`, `jaraama` → `jaaraama`, `yidi` → `yiɗi`). **Retour arrière juste après** annule la correction, et le mot est ensuite respecté.
 - **Mots retenus** : les mots que vous écrivez passent en tête des suggestions, même après un redémarrage.
 
+### Soulignement des fautes (correcteur de Windows)
+
+L'installateur enregistre aussi un **correcteur orthographique pulaar** auprès de Windows (`correcteur_pulaar\correcteur_pulaar.dll`). Les applications qui se servent du correcteur de Windows soulignent alors en rouge les mots pulaar mal écrits, et le clic droit propose la correction (`fulbe` → `fulɓe`, `jaraama` → `jaaraama`, `miido` → `miɗo`).
+- **Microsoft Edge** et **Google Chrome** : ajoutez « Peul » dans **Paramètres > Langues**, puis activez la vérification orthographique pour cette langue.
+- Les autres applications le font lorsqu'elles vérifient l'orthographe dans la langue du clavier choisi.
+- Word et LibreOffice ont leur propre correcteur et ne l'utilisent pas.
+
+Pour recompiler la DLL (chaîne Rust GNU, sans Visual Studio) :
+
+```bash
+cd correcteur_pulaar
+cargo +stable-x86_64-pc-windows-gnu build --release
+cargo +stable-x86_64-pc-windows-gnu run --release --example verifie
+```
+
+La seconde commande vérifie le correcteur en passant par le service de Windows, comme le font Edge ou Chrome.
+
 ### Paramètres
 
 Cliquez sur l'icône **ɓ** près de l'horloge. Une fenêtre semblable à la page « Saisie » de Windows s'ouvre, avec des interrupteurs pour :

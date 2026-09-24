@@ -37,11 +37,12 @@ if ($MachineOnly) {
     exit 0
 }
 
-# Utilisateur : arret du moteur, demarrage automatique, liste des langues
+# Utilisateur : arret du moteur, demarrage automatique, correcteur, liste des langues
 Get-CimInstance Win32_Process -Filter "Name = 'pythonw.exe' OR Name = 'python.exe'" |
     Where-Object { $_.CommandLine -like '*clavier_fulfulde_natif.py*' } |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
 Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'ClavierPulaar' -ErrorAction SilentlyContinue
+& (Join-Path (Split-Path -Parent $PSCommandPath) 'correcteur_pulaar\enregistrer_correcteur.ps1') -Retirer
 
 $liste = Get-WinUserLanguageList
 foreach ($langue in @($liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' })) {

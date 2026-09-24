@@ -1,0 +1,29 @@
+[package]
+name = "correcteur_pulaar"
+version = "1.0.0"
+edition = "2021"
+description = "Correcteur orthographique pulaar pour Windows (fournisseur de la Spell Checking API)"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+# windows 0.39 lie les fonctions de Windows par des bibliothèques d'import
+# fournies avec le crate : la chaîne GNU de Rust suffit, sans Visual Studio.
+# (0.61 passe par raw-dylib, qui demande dlltool et un assembleur MinGW.)
+[dependencies]
+windows = { version = "=0.39.0", features = [
+    "implement",
+    "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_System_Com",
+    "Win32_System_LibraryLoader",
+] }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+# Crate autonome : le Cargo.toml de la racine ne regroupe que src-tauri.
+[workspace]

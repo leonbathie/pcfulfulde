@@ -8,7 +8,9 @@
 #     dans « Applications installees » ;
 #  2. (utilisateur) ajoute la langue Peul (ff-Latn-SN) avec les claviers
 #     Pulaar AZERTY et QWERTY a la liste Win + Espace ;
-#  3. (utilisateur) lance le moteur de suggestions et le fait demarrer avec
+#  3. (utilisateur) enregistre le correcteur orthographique pulaar aupres de
+#     Windows : Edge, Chrome, le Bloc-notes soulignent les fautes ;
+#  4. (utilisateur) lance le moteur de suggestions et le fait demarrer avec
 #     Windows (sauf avec -SansMoteur).
 param(
     [switch]$MachineOnly,
@@ -39,7 +41,7 @@ function Copy-SiDifferent($source, $destination) {
 }
 
 function Install-Machine {
-    Write-Host '[1/3] Dispositions Pulaar dans Windows...' -ForegroundColor Yellow
+    Write-Host '[1/4] Dispositions Pulaar dans Windows...' -ForegroundColor Yellow
 
     # Les fichiers : 64 bits dans System32, 32 bits dans SysWOW64
     foreach ($d in $dispositions) {
@@ -110,7 +112,7 @@ function Install-Machine {
 }
 
 function Install-Utilisateur {
-    Write-Host '[2/3] Pulaar dans la liste Win + Espace...' -ForegroundColor Yellow
+    Write-Host '[2/4] Pulaar dans la liste Win + Espace...' -ForegroundColor Yellow
     $liste = Get-WinUserLanguageList
     $pulaar = $liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' } | Select-Object -First 1
     if (-not $pulaar) {
@@ -130,8 +132,15 @@ function Install-Utilisateur {
         Write-Host '      Windows n a pas garde la langue Peul : ouvrez Parametres > Heure et langue.' -ForegroundColor Red
     }
 
+    Write-Host '[3/4] Correcteur orthographique pulaar (Edge, Chrome, Bloc-notes...)...' -ForegroundColor Yellow
+    try {
+        & (Join-Path $ici 'correcteur_pulaar\enregistrer_correcteur.ps1')
+    } catch {
+        Write-Host "      Correcteur non enregistre : $_" -ForegroundColor Red
+    }
+
     if ($SansMoteur) { return }
-    Write-Host '[3/3] Moteur de suggestions...' -ForegroundColor Yellow
+    Write-Host '[4/4] Moteur de suggestions...' -ForegroundColor Yellow
     $pythonw = (Get-Command pythonw.exe -ErrorAction SilentlyContinue).Source
     if (-not $pythonw) {
         Write-Host '      Python est introuvable : installez-le depuis python.org, puis relancez.' -ForegroundColor Red

@@ -42,6 +42,9 @@ FULFULDEKEY_DICT = os.path.join(DESKTOP, "fulfuldekey", "app", "src", "main", "a
 TAPPIRGAL_DIR = os.path.join(DESKTOP, "donnee tappirgal")
 ANCIEN_DICT = os.path.join(SCRIPT_DIR, "sources_dictionnaire", "ancien_dict_ff_latin.json")
 DEST_DICT = os.path.join(SCRIPT_DIR, "dictionary", "dict_ff_latin.json")
+# La meme liste en texte simple, pour le correcteur orthographique de Windows
+# (correcteur_pulaar) : une ligne par mot, « forme<TAB>frequence ».
+DEST_MOTS = os.path.join(SCRIPT_DIR, "dictionary", "mots_pulaar.txt")
 
 # Nombre de suites gardees par mot : la bulle en montre trois, les autres
 # servent quand le debut du mot suivant ecarte les premieres.
@@ -275,8 +278,13 @@ def construit():
     }
     with open(DEST_DICT, "w", encoding="utf-8") as f:
         json.dump(sortie, f, ensure_ascii=False, separators=(",", ":"))
+    with open(DEST_MOTS, "w", encoding="utf-8", newline="\n") as f:
+        f.write("# Mots pulaar et leur frequence, pour le correcteur orthographique de Windows\n")
+        for w, frequence in liste:
+            f.write(f"{w}\t{frequence}\n")
     taille = os.path.getsize(DEST_DICT) / 2**20
     print(f"Termine : {len(liste)} mots, {len(ngrams)} mots avec suites -> {DEST_DICT} ({taille:.1f} Mo)")
+    print(f"Liste pour le correcteur de Windows -> {DEST_MOTS}")
 
 
 if __name__ == "__main__":
