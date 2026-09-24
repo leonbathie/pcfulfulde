@@ -20,10 +20,16 @@ param(
 $ErrorActionPreference = 'Stop'
 $ici = Split-Path -Parent $PSCommandPath
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
+# L'AZERTY est la disposition principale de la langue peule (00000867), comme
+# les claviers de Microsoft pour leurs langues. Windows n'en livre aucune pour
+# 0867 : inscrit seulement en variante (a0000867), le premier clavier de la
+# langue renvoyait a une disposition 00000867 absente, et le selecteur
+# Win + Espace (InputSwitch) faisait planter l'Explorateur en y passant.
 $dispositions = @(
-    @{ Klid = 'a0000867'; Dll = 'fulffaz.dll'; Texte = 'Pulaar (Fulfulde) AZERTY' },
+    @{ Klid = '00000867'; Dll = 'fulffaz.dll'; Texte = 'Pulaar (Fulfulde) AZERTY' },
     @{ Klid = 'a0010867'; Dll = 'fulffqw.dll'; Texte = 'Pulaar (Fulfulde) QWERTY' }
 )
+$anciennesDispositions = @('a0000867')
 $nosDll = @('fulffaz.dll', 'fulffqw.dll', 'kbdfulfa.dll', 'kbdfulfq.dll')
 $cleDesinstallation = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ClavierPulaar'
 $ancienSetup = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{9F3B96A1-7F2D-4D3C-8A3E-91B2D3E4F5A6}_is1'
@@ -54,28 +60,49 @@ function Install-Machine {
         }
     }
 
-    # Un Layout Id par disposition, que personne d'autre n'utilise : deux
-    # dispositions au meme Layout Id, et Windows peut charger la mauvaise.
+    # Une disposition principale (0000xxxx) n'a pas de Layout Id. Une variante
+    # (a00xxxxx) en a un, que personne d'autre n'utilise : deux dispositions au
+    # meme Layout Id, et Windows peut charger la mauvaise.
     $pris = @{}
     foreach ($cle in Get-ChildItem $base) {
         $id = (Get-ItemProperty $cle.PSPath).'Layout Id'
-        if ($id -and ($dispositions.Klid -notcontains $cle.PSChildName)) { $pris[$id.ToLower()] = $cle.PSChildName }
+        $notre = ($dispositions.Klid + $anciennesDispositions) -contains $cle.PSChildName
+        if ($id -and -not $notre) { $pris[$id.ToLower()] = $cle.PSChildName }
     }
     $prochain = 0x00f0
     foreach ($d in $dispositions) {
         $cle = Join-Path $base $d.Klid
+        $fichier = (Get-ItemProperty $cle -ErrorAction SilentlyContinue).'Layout File'
+        if ($fichier -and ($nosDll -notcontains $fichier.ToLower())) {
+            throw "La disposition $($d.Klid) existe deja ($fichier) : elle n'est pas remplacee."
+        }
         if (-not (Test-Path $cle)) { New-Item -Path $cle -Force | Out-Null }
+        Set-ItemProperty $cle -Name 'Layout File' -Value $d.Dll
+        Set-ItemProperty $cle -Name 'Layout Text' -Value $d.Texte
+        Set-ItemProperty $cle -Name 'Layout Display Name' -Value $d.Texte
+        if ($d.Klid.StartsWith('0000')) {
+            Remove-ItemProperty $cle -Name 'Layout Id' -ErrorAction SilentlyContinue
+            Write-Host "      $($d.Texte) : $($d.Klid) (disposition principale)" -ForegroundColor Green
+            continue
+        }
         $id = (Get-ItemProperty $cle).'Layout Id'
         if (-not $id -or $pris.ContainsKey($id.ToLower())) {
             while ($pris.ContainsKey(('{0:x4}' -f $prochain))) { $prochain++ }
             $id = '{0:x4}' -f $prochain
         }
         $pris[$id.ToLower()] = $d.Klid
-        Set-ItemProperty $cle -Name 'Layout File' -Value $d.Dll
-        Set-ItemProperty $cle -Name 'Layout Text' -Value $d.Texte
-        Set-ItemProperty $cle -Name 'Layout Display Name' -Value $d.Texte
         Set-ItemProperty $cle -Name 'Layout Id' -Value $id
         Write-Host "      $($d.Texte) : $($d.Klid), Layout Id $id" -ForegroundColor Green
+    }
+
+    # L'ancienne inscription de l'AZERTY en variante (a0000867)
+    foreach ($klid in $anciennesDispositions) {
+        $cle = Join-Path $base $klid
+        $fichier = (Get-ItemProperty $cle -ErrorAction SilentlyContinue).'Layout File'
+        if ($fichier -and ($nosDll -contains $fichier.ToLower())) {
+            Remove-Item $cle -Recurse -Force
+            Write-Host "      Ancienne inscription $klid retiree." -ForegroundColor Green
+        }
     }
 
     # La disposition Wolof de Windows, remplacee par les anciens installateurs

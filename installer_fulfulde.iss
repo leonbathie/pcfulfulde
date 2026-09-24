@@ -43,17 +43,19 @@ Source: "fulffaz_x86.dll"; DestDir: "{sys}"; DestName: "fulffaz.dll"; Check: not
 Source: "fulffqw_x86.dll"; DestDir: "{sys}"; DestName: "fulffqw.dll"; Check: not Is64BitInstallMode; Flags: restartreplace uninsrestartdelete
 
 [Registry]
-; Enregistrement officiel de la disposition AZERTY Fulfulde
-; Layout Id : 00a1 et 00a2 etaient deja ceux de dispositions de Windows
-; (00a1 = Lituanien standard) ; deux dispositions au meme Layout Id, et
-; Windows peut charger la mauvaise. 00f0 et 00f1 sont libres (Windows 11
-; s'arrete a 00d5).
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0000867"; ValueType: string; ValueName: "Layout File"; ValueData: "fulffaz.dll"; Flags: uninsdeletekey
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0000867"; ValueType: string; ValueName: "Layout Text"; ValueData: "Pulaar (Fulfulde) AZERTY"; Flags: uninsdeletekey
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0000867"; ValueType: string; ValueName: "Layout Display Name"; ValueData: "Pulaar (Fulfulde) AZERTY"; Flags: uninsdeletekey
-Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0000867"; ValueType: string; ValueName: "Layout Id"; ValueData: "00f0"; Flags: uninsdeletekey
+; Disposition AZERTY : la disposition principale de la langue peule (00000867),
+; sans Layout Id, comme les claviers de Microsoft pour leurs langues. Windows
+; n'en livre aucune pour 0867 : inscrit seulement en variante (a0000867), le
+; premier clavier de la langue renvoyait a une disposition 00000867 absente,
+; et le selecteur Win + Espace faisait planter l'Explorateur (InputSwitch.dll).
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000867"; ValueType: string; ValueName: "Layout File"; ValueData: "fulffaz.dll"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000867"; ValueType: string; ValueName: "Layout Text"; ValueData: "Pulaar (Fulfulde) AZERTY"; Flags: uninsdeletekey
+Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000867"; ValueType: string; ValueName: "Layout Display Name"; ValueData: "Pulaar (Fulfulde) AZERTY"; Flags: uninsdeletekey
 
-; Enregistrement officiel de la disposition QWERTY Fulfulde
+; Disposition QWERTY : une variante. Son Layout Id ne doit etre celui d'aucune
+; autre disposition (00a1 est celui du Lituanien standard) : deux dispositions
+; au meme Layout Id, et Windows peut charger la mauvaise. Windows 11 s'arrete
+; a 00d5.
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0010867"; ValueType: string; ValueName: "Layout File"; ValueData: "fulffqw.dll"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0010867"; ValueType: string; ValueName: "Layout Text"; ValueData: "Pulaar (Fulfulde) QWERTY"; Flags: uninsdeletekey
 Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0010867"; ValueType: string; ValueName: "Layout Display Name"; ValueData: "Pulaar (Fulfulde) QWERTY"; Flags: uninsdeletekey
@@ -64,4 +66,4 @@ Root: HKLM; Subkey: "SYSTEM\CurrentControlSet\Control\Keyboard Layouts\a0010867"
 
 [Run]
 ; Activation automatique des dispositions Fulfulde AZERTY et QWERTY dans les Parametres Windows et la barre des langues
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""$l = Get-WinUserLanguageList; $p = $l | Where-Object {{ $_.LanguageTag -eq 'ff-Latn-SN' }}; if (!$p) {{ $l.Add('ff-Latn-SN'); $p = $l | Where-Object {{ $_.LanguageTag -eq 'ff-Latn-SN' }} }}; if ($p) {{ $p.InputMethodTips.Clear(); $p.InputMethodTips.Add('0867:a0000867'); $p.InputMethodTips.Add('0867:a0010867'); Set-WinUserLanguageList $l -Force }};"""; StatusMsg: "Activation de la langue Peul dans Windows..."; Flags: runhidden runasoriginaluser
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""$l = Get-WinUserLanguageList; $p = $l | Where-Object {{ $_.LanguageTag -eq 'ff-Latn-SN' }}; if (!$p) {{ $l.Add('ff-Latn-SN'); $p = $l | Where-Object {{ $_.LanguageTag -eq 'ff-Latn-SN' }} }}; if ($p) {{ $p.InputMethodTips.Clear(); $p.InputMethodTips.Add('0867:00000867'); $p.InputMethodTips.Add('0867:a0010867'); Set-WinUserLanguageList $l -Force }};"""; StatusMsg: "Activation de la langue Peul dans Windows..."; Flags: runhidden runasoriginaluser

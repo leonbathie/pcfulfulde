@@ -66,6 +66,8 @@ VK_LCONTROL = 0xA2
 VK_RCONTROL = 0xA3
 VK_LMENU = 0xA4      # Left Alt
 VK_RMENU = 0xA5      # Right Alt (AltGr)
+VK_LWIN = 0x5B       # Touche Windows
+VK_RWIN = 0x5C
 # Touche sans effet, envoyée pendant Alt+chiffre pour que le relâchement d'Alt
 # n'ouvre pas le menu de l'application.
 VK_MASQUE = 0xE8
@@ -551,6 +553,7 @@ class FulfuldeEngine:
         self.ctrl_pressed = False
         self.alt_pressed = False
         self.alt_gr_pressed = False
+        self.win_pressed = False
 
         # Réglages par défaut ; run() les remplace par ceux enregistrés.
         self.parametres = dict(pc.PAR_DEFAUT)
@@ -853,6 +856,9 @@ class FulfuldeEngine:
         elif vk in (VK_RMENU,):
             self.alt_gr_pressed = is_down
             return True
+        elif vk in (VK_LWIN, VK_RWIN):
+            self.win_pressed = is_down
+            return True
 
         # Gestion des keyups pour les touches supprimées sur keydown
         if is_up:
@@ -870,6 +876,13 @@ class FulfuldeEngine:
         if foreground != self.window:
             self.window = foreground
             self.reset_context()
+
+        # Touche Windows + touche (Win + Espace, Win + V, Win + .) : un raccourci
+        # de Windows, jamais la fin d'un mot. Sans cela, Win + Espace après un mot
+        # déclenchait la correction automatique, qui retenait l'Espace.
+        if self.win_pressed:
+            self.reset_context()
+            return True
 
         # Comme les claviers de Microsoft : le clavier Pulaar n'agit que lorsqu'il
         # est choisi (Win + Espace). Avec Français ou Anglais, il se tait.

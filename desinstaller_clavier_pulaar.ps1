@@ -9,7 +9,10 @@ param([switch]$MachineOnly)
 
 $ErrorActionPreference = 'Stop'
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
-$klids = @('a0000867', 'a0010867')
+# 00000867 : l'AZERTY, disposition principale de la langue peule ; a0010867 :
+# le QWERTY ; a0000867 : l'ancienne inscription de l'AZERTY.
+$klids = @('00000867', 'a0010867', 'a0000867')
+$nosDll = @('fulffaz.dll', 'fulffqw.dll', 'kbdfulfa.dll', 'kbdfulfq.dll')
 
 function Test-Administrateur {
     ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
@@ -19,7 +22,9 @@ function Test-Administrateur {
 function Uninstall-Machine {
     foreach ($klid in $klids) {
         $cle = Join-Path $base $klid
-        if (Test-Path $cle) { Remove-Item $cle -Recurse -Force }
+        $fichier = (Get-ItemProperty $cle -ErrorAction SilentlyContinue).'Layout File'
+        # Seulement nos dispositions, jamais une disposition de Windows.
+        if ($fichier -and ($nosDll -contains $fichier.ToLower())) { Remove-Item $cle -Recurse -Force }
     }
     # Un fichier encore ouvert par une application reste en place : il ne sert
     # plus a rien une fois les cles retirees.

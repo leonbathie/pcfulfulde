@@ -11,7 +11,7 @@
 3. Le moteur de suggestions démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
 
 Le script `installer_clavier_pulaar.ps1` fait tout cela :
-- il enregistre `fulffaz.dll` et `fulffqw.dll` avec des *Layout Id* libres (l'ancien `00a1` était déjà celui du clavier lituanien) ;
+- il enregistre `fulffaz.dll` comme **disposition principale de la langue peule** (`00000867`), comme Microsoft le fait pour ses langues, et `fulffqw.dll` en variante, avec un *Layout Id* libre (l'ancien `00a1` était déjà celui du clavier lituanien). Windows ne livre aucun clavier `00000867` : inscrit seulement en variante, le premier clavier Pulaar renvoyait à une disposition absente, et le sélecteur Win + Espace faisait planter l'Explorateur ;
 - il rend à Windows sa disposition Wolof, que les anciens installateurs avaient remplacée ;
 - il inscrit le clavier dans **Paramètres > Applications > Applications installées**.
 
