@@ -95,7 +95,9 @@ def oublie_mots_appris():
 
 
 def commande_de_demarrage():
-    """pythonw : le clavier démarre sans fenêtre noire."""
+    """Le clavier démarre sans fenêtre noire : ClavierPulaar.exe une fois installé, pythonw sinon."""
+    if getattr(sys, "frozen", False):
+        return f'"{sys.executable}"'
     pythonw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
     if not os.path.exists(pythonw):
         pythonw = sys.executable
@@ -166,28 +168,22 @@ SOMBRE = {"fond": "#202020", "carte": "#2B2B2B", "bord": "#1D1D1D", "texte": "#F
           "lien": "#4CC2FF", "alerte": "#FCE100"}
 
 
-def _images_interrupteur(couleurs, facteur):
-    """Les deux images (désactivé, activé) de l'interrupteur de Windows 11, lissées."""
-    from PIL import Image, ImageDraw, ImageTk
-    largeur, hauteur = round(40 * facteur), round(20 * facteur)
-    s = 4  # suréchantillonnage, pour des bords lisses
-    images = []
-    for actif in (False, True):
-        im = Image.new("RGBA", (largeur * s, hauteur * s), (0, 0, 0, 0))
-        d = ImageDraw.Draw(im)
-        rayon = hauteur * s // 2
-        boite = (0, 0, largeur * s - 1, hauteur * s - 1)
-        if actif:
-            d.rounded_rectangle(boite, radius=rayon, fill=couleurs["accent"])
-            cx, r, couleur = largeur * s - rayon, int(rayon * 0.55), couleurs["pastille"]
-        else:
-            d.rounded_rectangle(boite, radius=rayon, fill=couleurs["carte"],
-                                outline=couleurs["eteint"], width=max(s, round(facteur * s)))
-            cx, r, couleur = rayon, int(rayon * 0.45), couleurs["eteint"]
-        cy = hauteur * s // 2
-        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=couleur)
-        images.append(ImageTk.PhotoImage(im.resize((largeur, hauteur), Image.LANCZOS)))
-    return images
+# Échelles d'affichage de Windows pour lesquelles l'interrupteur est dessiné
+# (icones/fabrique_icone.py fabrique les images).
+ECHELLES_INTERRUPTEUR = (100, 125, 150, 175, 200, 250, 300)
+
+
+def image_interrupteur(theme, actif, echelle):
+    """Chemin de l'image d'un interrupteur : theme « clair » ou « sombre »."""
+    dossier = os.path.dirname(ICONE)
+    return os.path.join(dossier, f"interrupteur_{theme}_{int(actif)}_{echelle}.png")
+
+
+def _images_interrupteur(theme, facteur):
+    """Les deux images (désactivé, activé) de l'interrupteur de Windows 11, à
+    l'échelle la plus proche de celle de l'écran. Tk lit le PNG lui-même."""
+    echelle = min(ECHELLES_INTERRUPTEUR, key=lambda e: abs(e - facteur * 100))
+    return [tk.PhotoImage(file=image_interrupteur(theme, actif, echelle)) for actif in (False, True)]
 
 
 class Interrupteur:
@@ -269,7 +265,7 @@ class FenetreParametres:
         police_section = tkfont.Font(root=root, family=famille, size=10, weight="bold")
 
         try:
-            self.images = _images_interrupteur(c, facteur)
+            self.images = _images_interrupteur("sombre" if c is SOMBRE else "clair", facteur)
         except Exception:
             self.images = None
 
@@ -295,8 +291,8 @@ class FenetreParametres:
         self.interrupteurs = {}
         self._carte(corps, "suggestions",
                     "Afficher les suggestions de texte lors de la frappe",
-                    "Des mots pulaar dans une bulle au-dessus du curseur. Choisir : clic, TAB, "
-                    "Alt + 1, 2, 3, ou Flèche haut puis Entrée.")
+                    "Des mots pulaar dans une bulle au-dessus du curseur. Tab prend la suggestion "
+                    "en surbrillance ; clic, Alt + 1, 2, 3 ou Flèche haut pour une autre.")
         self._carte(corps, "correction_automatique",
                     "Corriger automatiquement les fautes d'orthographe",
                     "À l'espace, fulbe devient fulɓe et jaraama devient jaaraama. "

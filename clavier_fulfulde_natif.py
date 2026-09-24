@@ -940,12 +940,14 @@ class FulfuldeEngine:
                 self.update_suggestions()
             return True
 
-        # 3. AUTOCOMPLÉTION : Touche TAB pour accepter la suggestion #1 d'un mot commencé
-        # (après une espace, TAB garde son rôle : champ suivant, tabulation...)
-        if vk == VK_TAB and self.autocomplete_enabled and not (self.ctrl_pressed or self.alt_pressed):
-            if self.current_prefix and self.current_suggestions:
-                self.apply_completion(self.current_suggestions[0])
-                return self.suppress(vk)
+        # 3. AUTOCOMPLÉTION : tant que la bulle est ouverte, TAB prend la suggestion
+        # en surbrillance (la première, ou celle choisie avec les flèches), au
+        # milieu d'un mot comme après une espace. Pour une vraie tabulation :
+        # Échap ferme la bulle, puis TAB.
+        if vk == VK_TAB and self.current_suggestions and not (
+                self.ctrl_pressed or self.alt_pressed or self.shift_pressed):
+            self.apply_completion(self.current_suggestions[self.selection or 0])
+            return self.suppress(vk)
 
         # 4. AUTOCOMPLÉTION : Touches Alt + [1, 2, 3]
         if self.alt_pressed and not self.alt_gr_pressed and not self.ctrl_pressed:

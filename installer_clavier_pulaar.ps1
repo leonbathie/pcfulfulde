@@ -12,13 +12,21 @@
 #     Windows : Edge, Chrome, le Bloc-notes soulignent les fautes ;
 #  4. (utilisateur) lance le moteur de suggestions et le fait demarrer avec
 #     Windows (sauf avec -SansMoteur).
+#
+#  Installe par Setup_Clavier_Pulaar.exe, le script est a cote de
+#  ClavierPulaar.exe : le moteur est cet exe, et l'entree des applications
+#  installees est celle du Setup. -MachineOnly et -UtilisateurSeulement font
+#  l'une ou l'autre partie (le Setup appelle les deux).
 param(
     [switch]$MachineOnly,
+    [switch]$UtilisateurSeulement,
     [switch]$SansMoteur
 )
 
 $ErrorActionPreference = 'Stop'
 $ici = Split-Path -Parent $PSCommandPath
+$exe = Join-Path $ici 'ClavierPulaar.exe'
+$empaquete = Test-Path $exe
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
 # L'AZERTY est la disposition principale de la langue peule (00000867), comme
 # les claviers de Microsoft pour leurs langues. Windows n'en livre aucune pour
@@ -125,7 +133,13 @@ function Install-Machine {
         Write-Host '      Ancien Setup « Clavier Fulfulde (Pulaar) Latin » retire.' -ForegroundColor Green
     }
 
-    # Une entree dans Parametres > Applications > Applications installees
+    # Une entree dans Parametres > Applications > Applications installees.
+    # Installe par le Setup, c'est la sienne : l'ancienne entree du dossier de
+    # developpement est retiree, pour ne pas figurer deux fois.
+    if ($empaquete) {
+        Remove-Item $cleDesinstallation -Recurse -Force -ErrorAction SilentlyContinue
+        return
+    }
     if (-not (Test-Path $cleDesinstallation)) { New-Item -Path $cleDesinstallation -Force | Out-Null }
     $desinstaller = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$ici\desinstaller_clavier_pulaar.ps1`""
     Set-ItemProperty $cleDesinstallation -Name 'DisplayName' -Value 'Clavier Pulaar (Fulfulde)'
@@ -168,6 +182,13 @@ function Install-Utilisateur {
 
     if ($SansMoteur) { return }
     Write-Host '[4/4] Moteur de suggestions...' -ForegroundColor Yellow
+    $demarrage = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+    if ($empaquete) {
+        Set-ItemProperty $demarrage -Name 'ClavierPulaar' -Value "`"$exe`""
+        Start-Process $exe
+        Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
+        return
+    }
     $pythonw = (Get-Command pythonw.exe -ErrorAction SilentlyContinue).Source
     if (-not $pythonw) {
         Write-Host '      Python est introuvable : installez-le depuis python.org, puis relancez.' -ForegroundColor Red
@@ -189,6 +210,10 @@ function Install-Utilisateur {
 if ($MachineOnly) {
     if (-not (Test-Administrateur)) { throw 'La partie machine doit tourner en administrateur.' }
     Install-Machine
+    exit 0
+}
+if ($UtilisateurSeulement) {
+    Install-Utilisateur
     exit 0
 }
 

@@ -6,18 +6,28 @@
 
 ## 🚀 Installation (une fois)
 
-1. Double-cliquez sur **`INSTALLER_LE_CLAVIER.bat`** et répondez **Oui** quand Windows demande l'autorisation.
+1. Lancez **`Setup_Clavier_Pulaar.exe`**, suivez l'assistant et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Clavier Pulaar`.
 2. Appuyez sur **Win + Espace** : la langue peule apparaît avec **Pulaar (Fulfulde) AZERTY** et **Pulaar (Fulfulde) QWERTY**, à côté de Français et Anglais.
-3. Le moteur de suggestions démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
+3. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
 
-Le script `installer_clavier_pulaar.ps1` fait tout cela :
+Pour tout retirer : **Paramètres > Applications > Clavier Pulaar (Fulfulde) > Désinstaller**.
+
+L'assistant lance `installer_clavier_pulaar.ps1`, qui :
 - il enregistre `fulffaz.dll` comme **disposition principale de la langue peule** (`00000867`), comme Microsoft le fait pour ses langues, et `fulffqw.dll` en variante, avec un *Layout Id* libre (l'ancien `00a1` était déjà celui du clavier lituanien). Windows ne livre aucun clavier `00000867` : inscrit seulement en variante, le premier clavier Pulaar renvoyait à une disposition absente, et le sélecteur Win + Espace faisait planter l'Explorateur ;
 - il rend à Windows sa disposition Wolof, que les anciens installateurs avaient remplacée ;
-- il inscrit le clavier dans **Paramètres > Applications > Applications installées**.
+- il ajoute la langue peule à Win + Espace, enregistre le correcteur orthographique et fait démarrer le clavier avec Windows.
 
-Pour tout retirer : **Paramètres > Applications**, ou `desinstaller_clavier_pulaar.ps1`.
+> `Setup_Clavier_Fulfulde.exe` est l'**ancien** installateur : ne l'utilisez plus. Il remplaçait la disposition Wolof de Windows et réutilisait un *Layout Id* déjà pris, ce qui faisait planter Win + Espace.
 
-> `Setup_Clavier_Fulfulde.exe` est l'ancien installateur : ne l'utilisez plus. Il remplaçait la disposition Wolof de Windows et réutilisait un *Layout Id* déjà pris.
+### Fabriquer l'installateur
+
+```powershell
+powershell -ExecutionPolicy Bypass -File installateur\fabriquer_installateur.ps1
+```
+
+Le script transforme le clavier en `ClavierPulaar.exe` avec PyInstaller, puis produit `Setup_Clavier_Pulaar.exe` avec Inno Setup 6 (`installateur\clavier_pulaar.iss`). Il faut Python avec `pynput` et `pyinstaller`, et Inno Setup 6.
+
+Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la même chose, avec le moteur lancé par Python (`LANCER_CLAVIER.bat`).
 
 ---
 
@@ -26,8 +36,8 @@ Pour tout retirer : **Paramètres > Applications**, ou `desinstaller_clavier_pul
 Choisissez **Pulaar** avec Win + Espace, puis écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp…).
 
 - **Suggestions de texte** : une bulle apparaît au-dessus du curseur. Elle propose le mot en cours, puis, après une espace, le mot suivant. Quand deux mots vont presque toujours ensemble, elle les propose d'un bloc (*hol ko*, *hay so*, *no feewi*).
-  - **Choisir** : un **clic** ; **TAB** pour la 1re suggestion d'un mot commencé ; **Alt + 1, 2, 3** ; ou **Flèche haut**, puis **← →** et **Entrée**.
-  - **Échap** ferme la bulle jusqu'au mot suivant.
+  - **Tab** prend la suggestion en surbrillance, au milieu d'un mot comme après une espace. La première est surlignée d'office ; **Flèche haut** puis **← →** en surlignent une autre. Un **clic** ou **Alt + 1, 2, 3** marchent aussi.
+  - **Échap** ferme la bulle jusqu'au mot suivant. Pour une vraie tabulation quand la bulle est ouverte : Échap, puis Tab.
   - Pas besoin des lettres à crochet pour chercher : `fulb` propose `fulɓe`, `bern` propose `ɓernde`, et `jaraam` propose `jaaraama` malgré la faute.
 - **Correction automatique** : à l'espace ou à la ponctuation, un mot inconnu tout proche d'un mot courant est corrigé (`fulbe` → `fulɓe`, `be` → `ɓe`, `jaraama` → `jaaraama`, `yidi` → `yiɗi`). **Retour arrière juste après** annule la correction, et le mot est ensuite respecté.
 - **Mots retenus** : les mots que vous écrivez passent en tête des suggestions, même après un redémarrage.

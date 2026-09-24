@@ -46,6 +46,7 @@ if ($MachineOnly) {
 Get-CimInstance Win32_Process -Filter "Name = 'pythonw.exe' OR Name = 'python.exe'" |
     Where-Object { $_.CommandLine -like '*clavier_fulfulde_natif.py*' } |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+Get-Process -Name 'ClavierPulaar' -ErrorAction SilentlyContinue | Stop-Process -Force
 Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'ClavierPulaar' -ErrorAction SilentlyContinue
 & (Join-Path (Split-Path -Parent $PSCommandPath) 'correcteur_pulaar\enregistrer_correcteur.ps1') -Retirer
 

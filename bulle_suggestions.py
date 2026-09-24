@@ -240,11 +240,12 @@ def _theme_sombre():
         return False
 
 
-# Couleurs des menus volants de Windows 11.
-THEME_CLAIR = {"fond": "#FFFFFF", "bord": "#D9D9D9", "texte": "#1A1A1A",
-               "survol": "#F0F0F0", "choisi": "#E3E3E3"}
-THEME_SOMBRE = {"fond": "#2C2C2C", "bord": "#454545", "texte": "#FFFFFF",
-                "survol": "#3A3A3A", "choisi": "#4A4A4A"}
+# Couleurs des menus volants de Windows 11. « tab » : la suggestion que prend
+# la touche Tab ; « choisi » : celle choisie avec les flèches.
+THEME_CLAIR = {"fond": "#FFFFFF", "bord": "#D9D9D9", "texte": "#1A1A1A", "indice": "#8A8A8A",
+               "survol": "#F0F0F0", "tab": "#E8F0FB", "choisi": "#CCE0F8"}
+THEME_SOMBRE = {"fond": "#2C2C2C", "bord": "#454545", "texte": "#FFFFFF", "indice": "#9A9A9A",
+                "survol": "#3A3A3A", "tab": "#2F3B48", "choisi": "#3D5A78"}
 
 
 class BulleSuggestions:
@@ -291,6 +292,9 @@ class BulleSuggestions:
             e.bind("<Enter>", lambda _ev, i=i: self._survole(i))
             e.bind("<Leave>", lambda _ev: self._survole(None))
             self.etiquettes.append(e)
+        # Repère discret : Tab prend la suggestion en surbrillance.
+        self.indice = tk.Label(self.cadre, text="Tab ⇥", font=tkfont.Font(family=famille, size=8),
+                               bg=self.couleurs["fond"], fg=self.couleurs["indice"], padx=8)
 
         # Premiere apparition hors de l'ecran, invisible, pour que Windows cree
         # la fenetre ; on regle alors ses styles avant de la montrer vraiment.
@@ -391,6 +395,8 @@ class BulleSuggestions:
             return self.couleurs["choisi"]
         if i == self._survol:
             return self.couleurs["survol"]
+        if self._selection is None and i == 0:
+            return self.couleurs["tab"]
         return self.couleurs["fond"]
 
     def _peint(self):
@@ -405,11 +411,13 @@ class BulleSuggestions:
             return
 
         if suggestions != self._montree:
+            self.indice.pack_forget()
             for i, e in enumerate(self.etiquettes):
                 e.pack_forget()
                 if i < len(suggestions):
                     e.configure(text=suggestions[i])
                     e.pack(side="left", padx=(0 if i == 0 else 2, 0))
+            self.indice.pack(side="left")
             self._montree = list(suggestions)
             self._survol = None
         self._selection = selection
