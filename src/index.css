@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+  }
+}
+
+/* Custom Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Theme classes */
+.theme-midnight {
+  background: rgba(15, 23, 42, var(--tw-bg-opacity, 0.9));
+  border-color: rgba(51, 65, 85, 0.7);
+}
+
+.theme-pulaar-indigo {
+  background: rgba(30, 27, 75, var(--tw-bg-opacity, 0.9));
+  border-color: rgba(67, 56, 202, 0.7);
+}
+
+.theme-emerald {
+  background: rgba(6, 78, 59, var(--tw-bg-opacity, 0.9));
+  border-color: rgba(16, 185, 129, 0.7);
+}
+
+.theme-solar-gold {
+  background: rgba(69, 26, 3, var(--tw-bg-opacity, 0.9));
+  border-color: rgba(245, 158, 11, 0.7);
+}
+
+.theme-clean-light {
+  background: rgba(248, 250, 252, var(--tw-bg-opacity, 0.95));
+  border-color: rgba(203, 213, 225, 0.8);
+  color: #0f172a;
+}

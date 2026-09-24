@@ -1,0 +1,87 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": true
+  },
+  "package": {
+    "productName": "Clavier Fulfulde",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "window": {
+        "all": false,
+        "close": true,
+        "hide": true,
+        "show": true,
+        "maximize": true,
+        "minimize": true,
+        "unmaximize": true,
+        "unminimize": true,
+        "startDragging": true,
+        "setAlwaysOnTop": true,
+        "setSize": true,
+        "setPosition": true
+      },
+      "globalShortcut": {
+        "all": true
+      },
+      "notification": {
+        "all": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "org.fulfulde.keyboard",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "resources": ["../dictionary/*"],
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      },
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "11.0",
+        "exceptionDomain": "",
+        "signingIdentity": null,
+        "providerShortName": null,
+        "entitlements": null
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "title": "Clavier Fulfulde (Pulaar) - Latin & Adlam",
+        "width": 940,
+        "height": 380,
+        "minWidth": 640,
+        "minHeight": 260,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "skipTaskbar": false,
+        "center": true
+      }
+    ],
+    "systemTray": {
+      "iconPath": "icons/32x32.png",
+      "iconAsTemplate": true
+    }
+  }
+}

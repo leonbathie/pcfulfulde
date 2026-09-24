@@ -1,0 +1,17 @@
+# Compilations et dépendances (se reconstruisent : cargo build, npm install)
+target/
+node_modules/
+dist/
+__pycache__/
+*.pyc
+*.o
+
+# Sauvegardes locales et fichiers de travail
+_sauvegarde_*/
+compile.log
+/compare_y.png
+/crop_row4.png
+/k2.png
+
+# Ancienne copie du dictionnaire que rien ne lit (le code lit dictionary/)
+src/dictionary/

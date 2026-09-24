@@ -1,0 +1,4 @@
+LIBRARY KBDFULFQ
+
+EXPORTS
+    KbdLayerDescriptor @1
