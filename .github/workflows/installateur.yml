@@ -121,4 +121,7 @@ jobs:
         run: |
           $setup = if ($env:SIGNER -eq 'true') { 'installateur-signe/Setup_Clavier_Pulaar.exe' } else { 'Setup_Clavier_Pulaar.exe' }
           $notes = "Installateur du Clavier Pulaar (Fulfulde) pour Windows 10 et 11. Lancez Setup_Clavier_Pulaar.exe, puis choisissez « Pulaar (Fulfulde) AZERTY » avec Win + Espace."
+          if ($env:SIGNER -eq 'true') {
+            $notes += "`n`nFree code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)."
+          }
           gh release create $env:GITHUB_REF_NAME $setup --title "Clavier Pulaar $env:GITHUB_REF_NAME" --notes $notes

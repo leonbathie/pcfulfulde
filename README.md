@@ -4,6 +4,12 @@
 
 ---
 
+## Download
+
+*Télécharger.* Les versions sont publiées dans **[Releases](https://github.com/leonbathie/pcfulfulde/releases)** : téléchargez `Setup_Clavier_Pulaar.exe`. Les installateurs signés le sont par SignPath Foundation : free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/) (voir [Code signing policy](#code-signing-policy)).
+
+---
+
 ## 🚀 Installation (une fois)
 
 1. Lancez **`Setup_Clavier_Pulaar.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Clavier Pulaar`.
@@ -172,7 +178,9 @@ Le dictionnaire (`dictionary\dict_ff_latin.json`) est tiré de deux sources :
 
 ---
 
-## ✍️ Code signing policy — Politique de signature de code
+## Code signing policy
+
+*Politique de signature de code.*
 
 Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
 
@@ -183,9 +191,13 @@ Only the files built by GitHub Actions from this repository (`.github/workflows/
 
 Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont signés, et chaque signature est approuvée à la main. Les dispositions de clavier `fulffaz.dll` et `fulffqw.dll` sont livrées sans signature dans l'installateur.
 
-**Privacy policy** : This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The words it learns stay on the computer (`%APPDATA%\ClavierPulaar`).
+### Privacy policy
 
-**Vie privée** : ce programme ne transmet aucune information à d'autres systèmes en réseau, sauf demande expresse de l'utilisateur. Les mots qu'il retient restent sur l'ordinateur.
+*Vie privée.*
+
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The words it learns stay on the computer (`%APPDATA%\ClavierPulaar`).
+
+Ce programme ne transmet aucune information à d'autres systèmes en réseau, sauf demande expresse de l'utilisateur. Les mots qu'il retient restent sur l'ordinateur.
 
 ---
 
