@@ -6,7 +6,7 @@
 
 ## 🚀 Installation (une fois)
 
-1. Lancez **`Setup_Clavier_Pulaar.exe`**, suivez l'assistant et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Clavier Pulaar`.
+1. Lancez **`Setup_Clavier_Pulaar.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Clavier Pulaar`.
 2. Appuyez sur **Win + Espace** : la langue peule apparaît avec **Pulaar (Fulfulde) AZERTY** et **Pulaar (Fulfulde) QWERTY**, à côté de Français et Anglais.
 3. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
 
@@ -27,6 +27,22 @@ powershell -ExecutionPolicy Bypass -File installateur\fabriquer_installateur.ps1
 
 Le script transforme le clavier en `ClavierPulaar.exe` avec PyInstaller, puis produit `Setup_Clavier_Pulaar.exe` avec Inno Setup 6 (`installateur\clavier_pulaar.iss`). Il faut Python avec `pynput` et `pyinstaller`, et Inno Setup 6.
 
+### Signer l'installateur (pour le partager)
+
+Sans signature, Windows avertit ceux qui téléchargent l'installateur (« Windows a protégé votre ordinateur »). Une signature reconnue demande un **certificat de signature de code délivré à votre nom** par une autorité, après vérification de votre identité. Par exemple :
+- Certum *Open Source Code Signing*, pour les projets libres ;
+- SignPath Foundation, gratuit pour les projets libres ; la signature se fait alors dans GitHub Actions ;
+- SSL.com ou Sectigo.
+
+Une fois le certificat installé (ou en fichier `.pfx`) :
+
+```powershell
+$env:CLAVIER_PULAAR_CERTIFICAT = "<empreinte du certificat>"   # ou CLAVIER_PULAAR_PFX et CLAVIER_PULAAR_PFX_MDP
+powershell -ExecutionPolicy Bypass -File installateur\fabriquer_installateur.ps1 -Signer
+```
+
+`ClavierPulaar.exe`, l'installateur et son désinstalleur sont alors signés et horodatés (`installateur\signer.ps1`).
+
 Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la même chose, avec le moteur lancé par Python (`LANCER_CLAVIER.bat`).
 
 ---
@@ -36,8 +52,8 @@ Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la m�
 Choisissez **Pulaar** avec Win + Espace, puis écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp…).
 
 - **Suggestions de texte** : une bulle apparaît au-dessus du curseur. Elle propose le mot en cours, puis, après une espace, le mot suivant. Quand deux mots vont presque toujours ensemble, elle les propose d'un bloc (*hol ko*, *hay so*, *no feewi*).
-  - **Tab** prend la suggestion en surbrillance, au milieu d'un mot comme après une espace. La première est surlignée d'office ; **Flèche haut** puis **← →** en surlignent une autre. Un **clic** ou **Alt + 1, 2, 3** marchent aussi.
-  - **Échap** ferme la bulle jusqu'au mot suivant. Pour une vraie tabulation quand la bulle est ouverte : Échap, puis Tab.
+  - **Sans la souris** : **← →** surlignent une suggestion, **Tab** ou **Entrée** la prennent. La première est surlignée d'office : **Tab** seul la prend, au milieu d'un mot comme après une espace. Un **clic** ou **Alt + 1, 2, 3** marchent aussi.
+  - **Échap** ferme la bulle jusqu'au mot suivant. Pour déplacer le curseur avec ← → ou faire une vraie tabulation pendant que la bulle est ouverte : Échap d'abord. Les flèches peuvent aussi être laissées au texte : interrupteur « Choisir les suggestions avec les flèches » dans les paramètres.
   - Pas besoin des lettres à crochet pour chercher : `fulb` propose `fulɓe`, `bern` propose `ɓernde`, et `jaraam` propose `jaaraama` malgré la faute.
 - **Correction automatique** : à l'espace ou à la ponctuation, un mot inconnu tout proche d'un mot courant est corrigé (`fulbe` → `fulɓe`, `be` → `ɓe`, `jaraama` → `jaaraama`, `yidi` → `yiɗi`). **Retour arrière juste après** annule la correction, et le mot est ensuite respecté.
 - **Mots retenus** : les mots que vous écrivez passent en tête des suggestions, même après un redémarrage.

@@ -35,12 +35,61 @@ WizardStyle=modern
 MinVersion=10.0
 ; Le moteur tient ses fichiers ouverts : l'assistant l'arrête lui-même (PrepareToInstall).
 CloseApplications=no
+ShowLanguageDialog=yes
+LanguageDetectionMethod=uilanguage
+; Signature : fabriquer_installateur.ps1 -Signer (voir installateur\signer.ps1).
+#ifdef Signer
+SignTool=signature
+SignedUninstaller=yes
+#endif
 
 [Languages]
+;  Toutes les langues fournies avec Inno Setup : l'assistant demande la sienne
+;  en premier, celle de Windows proposee d'office.
+Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "arabic"; MessagesFile: "compiler:Languages\Arabic.isl"
+Name: "armenian"; MessagesFile: "compiler:Languages\Armenian.isl"
+Name: "brazilianportuguese"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+Name: "bulgarian"; MessagesFile: "compiler:Languages\Bulgarian.isl"
+Name: "catalan"; MessagesFile: "compiler:Languages\Catalan.isl"
+Name: "corsican"; MessagesFile: "compiler:Languages\Corsican.isl"
+Name: "czech"; MessagesFile: "compiler:Languages\Czech.isl"
+Name: "danish"; MessagesFile: "compiler:Languages\Danish.isl"
+Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
+Name: "finnish"; MessagesFile: "compiler:Languages\Finnish.isl"
 Name: "french"; MessagesFile: "compiler:Languages\French.isl"
+Name: "german"; MessagesFile: "compiler:Languages\German.isl"
+Name: "hebrew"; MessagesFile: "compiler:Languages\Hebrew.isl"
+Name: "hungarian"; MessagesFile: "compiler:Languages\Hungarian.isl"
+Name: "italian"; MessagesFile: "compiler:Languages\Italian.isl"
+Name: "japanese"; MessagesFile: "compiler:Languages\Japanese.isl"
+Name: "korean"; MessagesFile: "compiler:Languages\Korean.isl"
+Name: "norwegian"; MessagesFile: "compiler:Languages\Norwegian.isl"
+Name: "polish"; MessagesFile: "compiler:Languages\Polish.isl"
+Name: "portuguese"; MessagesFile: "compiler:Languages\Portuguese.isl"
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
+Name: "slovak"; MessagesFile: "compiler:Languages\Slovak.isl"
+Name: "slovenian"; MessagesFile: "compiler:Languages\Slovenian.isl"
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
+Name: "swedish"; MessagesFile: "compiler:Languages\Swedish.isl"
+Name: "tamil"; MessagesFile: "compiler:Languages\Tamil.isl"
+Name: "thai"; MessagesFile: "compiler:Languages\Thai.isl"
+Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
+Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
+; Messages propres au Clavier Pulaar : en anglais pour toutes les langues, en
+; français pour le français.
 [Messages]
-french.FinishedLabel=Le Clavier Pulaar est installé.%n%nAppuyez sur Win + Espace et choisissez « Pulaar (Fulfulde) AZERTY ». En écrivant, les suggestions apparaissent au-dessus du curseur : Tab prend la suggestion en surbrillance.%n%nLes réglages sont derrière l'icône ɓ, près de l'horloge.
+FinishedLabel=The Pulaar Keyboard is installed.%n%nPress Win + Space and choose "Pulaar (Fulfulde) AZERTY". As you type, suggestions appear above the cursor: Tab takes the highlighted one, ← → highlight another.%n%nSettings are behind the ɓ icon, next to the clock.
+french.FinishedLabel=Le Clavier Pulaar est installé.%n%nAppuyez sur Win + Espace et choisissez « Pulaar (Fulfulde) AZERTY ». En écrivant, les suggestions apparaissent au-dessus du curseur : Tab prend la suggestion en surbrillance, ← → en surlignent une autre.%n%nLes réglages sont derrière l'icône ɓ, près de l'horloge.
+
+[CustomMessages]
+AjoutClaviers=Adding the Pulaar keyboards to Windows...
+french.AjoutClaviers=Ajout des claviers Pulaar à Windows...
+PulaarWinEspace=Pulaar in Win + Space, spell checker and suggestions...
+french.PulaarWinEspace=Pulaar dans Win + Espace, correcteur et suggestions...
+Commentaire=Pulaar word suggestions and corrections
+french.Commentaire=Suggestions et correction en pulaar
 
 [Files]
 Source: "{#Racine}\construction\dist\ClavierPulaar\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -56,11 +105,11 @@ Source: "{#Racine}\dictionary\mots_pulaar.txt"; DestDir: "{app}\dictionary"; Fla
 Source: "{#Racine}\icones\clavier_pulaar.ico"; DestDir: "{app}\icones"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\Clavier Pulaar"; Filename: "{app}\ClavierPulaar.exe"; Comment: "Suggestions et correction en pulaar"
+Name: "{autoprograms}\Clavier Pulaar"; Filename: "{app}\ClavierPulaar.exe"; Comment: "{cm:Commentaire}"
 
 [Run]
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -MachineOnly"; StatusMsg: "Ajout des claviers Pulaar à Windows..."; Flags: runhidden waituntilterminated
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -UtilisateurSeulement"; StatusMsg: "Pulaar dans Win + Espace, correcteur et suggestions..."; Flags: runhidden waituntilterminated runasoriginaluser
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -MachineOnly"; StatusMsg: "{cm:AjoutClaviers}"; Flags: runhidden waituntilterminated
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -UtilisateurSeulement"; StatusMsg: "{cm:PulaarWinEspace}"; Flags: runhidden waituntilterminated runasoriginaluser
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\desinstaller_clavier_pulaar.ps1"""; Flags: runhidden waituntilterminated; RunOnceId: "RetireClavierPulaar"

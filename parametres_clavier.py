@@ -35,6 +35,7 @@ CLE_LANGUES = r"Control Panel\International\User Profile"
 PAR_DEFAUT = {
     "suggestions": True,             # la bulle au-dessus du curseur
     "correction_automatique": True,  # fulbe -> fulɓe à l'espace
+    "fleches": True,                 # ← → choisissent dans la bulle
     "retenir_les_mots": True,        # mots_appris.json
     "sans_disposition": False,       # remplacer les touches sans le clavier Pulaar de Windows
 }
@@ -293,6 +294,10 @@ class FenetreParametres:
                     "Afficher les suggestions de texte lors de la frappe",
                     "Des mots pulaar dans une bulle au-dessus du curseur. Tab prend la suggestion "
                     "en surbrillance ; clic, Alt + 1, 2, 3 ou Flèche haut pour une autre.")
+        self._carte(corps, "fleches",
+                    "Choisir les suggestions avec les flèches ← →",
+                    "Sans la souris : ← → surlignent une suggestion, Tab ou Entrée la prennent. "
+                    "Pour déplacer le curseur dans le texte pendant que la bulle est ouverte : Échap d'abord.")
         self._carte(corps, "correction_automatique",
                     "Corriger automatiquement les fautes d'orthographe",
                     "À l'espace, fulbe devient fulɓe et jaraama devient jaaraama. "

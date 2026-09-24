@@ -331,6 +331,10 @@ class BulleSuggestions:
     def arrete(self):
         self._file.put(("arrete", None, None))
 
+    def regle_indice(self, texte):
+        """Change le repère affiché au bout de la bulle (« ← → · Tab ⇥ »)."""
+        self.execute(lambda: self.indice.configure(text=texte))
+
     def execute(self, fonction):
         """Fait tourner `fonction` sur le fil Tk (fenetre de reglages, par exemple)."""
         self._file.put(("execute", fonction, None))

@@ -596,11 +596,17 @@ class FulfuldeEngine:
 
     # --- Réglages, icône, fenêtre de paramètres ---------------------------------
 
+    def bubble_hint(self):
+        """Le repère au bout de la bulle : les touches qui choisissent."""
+        return "← → · Tab ⇥" if self.parametres["fleches"] else "Tab ⇥"
+
     def change_setting(self, cle, valeur):
         """Un interrupteur des paramètres, ou du menu de l'icône, a changé."""
         with self.lock:
             self.parametres[cle] = valeur
             self.reset_context()
+        if cle == "fleches" and self.bubble:
+            self.bubble.regle_indice(self.bubble_hint())
         fenetre = pc.FenetreParametres.ouverte
         if fenetre is not None and self.bubble:
             self.bubble.execute(fenetre.rafraichit)
@@ -909,8 +915,9 @@ class FulfuldeEngine:
             self.toggle_autocompletion()
             return self.suppress(vk)
 
-        # 2. BULLE : Flèche haut entre dans la bulle, ←/→ choisissent, Entrée ou
-        # TAB valident, Échap ou Flèche bas en sortent (comme Windows 11).
+        # 2. BULLE : ← → surlignent directement une suggestion (réglage « flèches »),
+        # Flèche haut entre aussi dans la bulle ; Tab ou Entrée prennent la
+        # suggestion surlignée ; Échap ou Flèche bas en sortent.
         if self.selection is not None:
             if plain and vk in (VK_LEFT, VK_RIGHT):
                 step = 1 if vk == VK_RIGHT else -1
@@ -928,8 +935,12 @@ class FulfuldeEngine:
             # Toute autre touche quitte la bulle et agit normalement.
             self.selection = None
             self.refresh_bubble()
-        elif plain and vk == VK_UP and self.current_suggestions:
-            self.selection = 0
+        elif plain and self.current_suggestions and (
+                vk == VK_UP or (vk in (VK_LEFT, VK_RIGHT) and self.parametres["fleches"])):
+            # La première suggestion est déjà en surbrillance (celle de Tab) :
+            # → passe à la suivante, ← à la dernière.
+            n = len(self.current_suggestions)
+            self.selection = {VK_UP: 0, VK_RIGHT: 1 % n, VK_LEFT: n - 1}[vk]
             self.refresh_bubble()
             return self.suppress(vk)
 
@@ -1136,6 +1147,7 @@ def run():
     if engine.parametres["retenir_les_mots"]:
         engine.autocompleter.importe_appris(pc.lit_mots_appris())
     engine.bubble = BulleSuggestions(sur_choix=engine.choose, sur_tic=engine.watch_foreground)
+    engine.bubble.regle_indice(engine.bubble_hint())
     icone = IconeNotification(pc.ICONE, "Clavier Pulaar — suggestions quand « Pulaar » est choisi (Win + Espace)",
                               menu=engine.tray_menu, sur_clic=engine.open_settings)
 
@@ -1145,7 +1157,7 @@ def run():
     print(f"  Dictionnaire : {len(engine.autocompleter.words)} mots pulaar, "
           f"{len(engine.autocompleter.ngrams)} avec leurs suites")
     print("  Le clavier agit quand « Pulaar » est choisi (Win + Espace).")
-    print("  Bulle : clic, TAB, Alt + 1..3, ou Flèche haut puis ← → et Entrée ; Échap la ferme.")
+    print("  Bulle : Tab prend la suggestion en surbrillance ; ← → en surlignent une autre ; Échap la ferme.")
     print("  Correction automatique à l'espace ; Retour arrière juste après l'annule.")
     print("  Paramètres et Quitter : icône ɓ près de l'horloge.")
     print("=" * 68)
