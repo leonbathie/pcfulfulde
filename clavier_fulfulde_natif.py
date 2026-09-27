@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Moteur du Clavier Fulfulde (Pulaar) Latin pour Windows, comme les claviers de Microsoft :
+Moteur de Fulfulde Keyboard, le clavier pulaar pour Windows, comme les claviers de Microsoft :
 - Comme les claviers de Microsoft : il agit quand FUL (Pulaar) est choisi dans
   Win + Espace, et place lui-même les lettres pulaar (v -> ɓ, z -> ɗ, q -> ŋ,
   x -> ƴ, ^ ou [ -> ñ) ; avec Français ou Anglais, il se tait. FUL figure dans
@@ -763,7 +763,7 @@ class FulfuldeEngine:
     def tray_menu(self):
         p = self.parametres
         return [
-            ("Paramètres du clavier Pulaar…", False, self.open_settings),
+            (f"Paramètres de {pc.NOM}…", False, self.open_settings),
             None,
             ("Écrire en pulaar avec tous les claviers", p["sans_disposition"],
              lambda: self.change_setting("sans_disposition", not p["sans_disposition"])),
@@ -772,7 +772,7 @@ class FulfuldeEngine:
             ("Correction automatique", p["correction_automatique"],
              lambda: self.change_setting("correction_automatique", not p["correction_automatique"])),
             None,
-            ("Quitter le clavier Pulaar", False, self.quit),
+            (f"Quitter {pc.NOM}", False, self.quit),
         ]
 
     # --- Suggestions et bulle ---------------------------------------------------
@@ -1317,10 +1317,13 @@ def run():
     from bulle_suggestions import BulleSuggestions, active_dpi
     from zone_notification import IconeNotification
 
+    # Avant d'ouvrir le journal : le dossier de « Clavier Pulaar » (2.4.1 et avant)
+    # devient celui de Fulfulde Keyboard, avec les réglages et les mots retenus.
+    pc.reprend_ancien_dossier()
     _journal_si_sans_console()
-    print(f"--- {time.strftime('%Y-%m-%d %H:%M:%S')} Clavier Pulaar")
+    print(f"--- {time.strftime('%Y-%m-%d %H:%M:%S')} {pc.NOM}")
     if not _seule_instance():
-        print("Le Clavier Pulaar tourne déjà : voir son icône près de l'horloge.")
+        print(f"{pc.NOM} tourne déjà : voir son icône près de l'horloge.")
         return
 
     # Avant toute fenêtre : coordonnées en pixels réels pour placer la bulle
@@ -1330,11 +1333,11 @@ def run():
         engine.autocompleter.importe_appris(pc.lit_mots_appris())
     engine.bubble = BulleSuggestions(sur_choix=engine.choose, sur_tic=engine.watch_foreground)
     engine.bubble.regle_indice(engine.bubble_hint())
-    icone = IconeNotification(pc.ICONE, "Clavier Pulaar — suggestions et lettres pulaar",
+    icone = IconeNotification(pc.ICONE, f"{pc.NOM} — lettres et suggestions pulaar",
                               menu=engine.tray_menu, sur_clic=engine.open_settings)
 
     print("=" * 68)
-    print("      CLAVIER PULAAR (FULFULDE) - MOTEUR ACTIF")
+    print(f"      {pc.NOM.upper()} - MOTEUR ACTIF")
     print("=" * 68)
     print(f"  Dictionnaire : {len(engine.autocompleter.words)} mots pulaar, "
           f"{len(engine.autocompleter.ngrams)} avec leurs suites")

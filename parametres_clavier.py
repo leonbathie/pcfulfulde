@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Réglages du Clavier Pulaar, présentés comme la page « Saisie » des paramètres
-de Windows 11, et ce que le clavier retient d'une session à l'autre.
+Réglages de Fulfulde Keyboard, présentés comme la page « Saisie » des
+paramètres de Windows 11, et ce que le clavier retient d'une session à l'autre.
 
-Tout est rangé dans %APPDATA%\\ClavierPulaar :
+Tout est rangé dans %APPDATA%\\FulfuldeKeyboard :
 - parametres.json  : les interrupteurs de la fenêtre de réglages ;
 - mots_appris.json : les mots que l'on écrit, proposés en premier ;
 - journal.txt      : les messages du moteur quand il tourne sans console.
@@ -13,6 +13,7 @@ Tout est rangé dans %APPDATA%\\ClavierPulaar :
 import os
 import sys
 import json
+import shutil
 import ctypes
 import tkinter as tk
 import tkinter.font as tkfont
@@ -22,14 +23,36 @@ try:
 except ImportError:  # hors Windows
     winreg = None
 
-DOSSIER = os.path.join(os.environ.get("APPDATA") or os.path.expanduser("~"), "ClavierPulaar")
+NOM = "Fulfulde Keyboard"
+_APPDATA = os.environ.get("APPDATA") or os.path.expanduser("~")
+DOSSIER = os.path.join(_APPDATA, "FulfuldeKeyboard")
+# Le dossier des versions 2.4.1 et avant, quand le clavier s'appelait « Clavier Pulaar »
+ANCIEN_DOSSIER = os.path.join(_APPDATA, "ClavierPulaar")
 FICHIER_PARAMETRES = os.path.join(DOSSIER, "parametres.json")
 FICHIER_MOTS_APPRIS = os.path.join(DOSSIER, "mots_appris.json")
 FICHIER_JOURNAL = os.path.join(DOSSIER, "journal.txt")
 ICONE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icones", "clavier_pulaar.ico")
 
 CLE_DEMARRAGE = r"Software\Microsoft\Windows\CurrentVersion\Run"
-NOM_DEMARRAGE = "ClavierPulaar"
+NOM_DEMARRAGE = "FulfuldeKeyboard"
+ANCIEN_NOM_DEMARRAGE = "ClavierPulaar"
+
+
+def reprend_ancien_dossier():
+    """Les réglages, les mots retenus et le journal de « Clavier Pulaar » passent
+    dans le dossier de Fulfulde Keyboard, une fois."""
+    if os.path.exists(DOSSIER) or not os.path.isdir(ANCIEN_DOSSIER):
+        return
+    try:
+        os.rename(ANCIEN_DOSSIER, DOSSIER)
+    except OSError:
+        # Un fichier encore ouvert (l'ancien moteur qui s'arrête) : on copie.
+        os.makedirs(DOSSIER, exist_ok=True)
+        for nom in ("parametres.json", "mots_appris.json", "journal.txt"):
+            try:
+                shutil.copy2(os.path.join(ANCIEN_DOSSIER, nom), os.path.join(DOSSIER, nom))
+            except OSError:
+                pass
 
 PAR_DEFAUT = {
     "suggestions": True,             # la bulle au-dessus du curseur
@@ -104,7 +127,7 @@ def oublie_mots_appris():
 
 
 def commande_de_demarrage():
-    """Le clavier démarre sans fenêtre noire : ClavierPulaar.exe une fois installé, pythonw sinon."""
+    """Le clavier démarre sans fenêtre noire : FulfuldeKeyboard.exe une fois installé, pythonw sinon."""
     if getattr(sys, "frozen", False):
         return f'"{sys.executable}"'
     pythonw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
@@ -129,6 +152,10 @@ def regle_demarrage(actif):
     if winreg is None:
         return
     with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CLE_DEMARRAGE, 0, winreg.KEY_SET_VALUE) as cle:
+        try:
+            winreg.DeleteValue(cle, ANCIEN_NOM_DEMARRAGE)
+        except FileNotFoundError:
+            pass
         if actif:
             winreg.SetValueEx(cle, NOM_DEMARRAGE, 0, winreg.REG_SZ, commande_de_demarrage())
         else:
@@ -216,7 +243,7 @@ class Interrupteur:
 
 
 class FenetreParametres:
-    """La fenêtre « Clavier Pulaar — Paramètres ». Une seule à la fois."""
+    """La fenêtre « Fulfulde Keyboard — Paramètres ». Une seule à la fois."""
 
     ouverte = None
 
@@ -236,7 +263,7 @@ class FenetreParametres:
         facteur = root.winfo_fpixels("1i") / 96.0
 
         f = self.fenetre = tk.Toplevel(root)
-        f.title("Clavier Pulaar — Paramètres")
+        f.title(f"{NOM} — Paramètres")
         f.configure(bg=c["fond"])
         f.resizable(False, False)
         f.protocol("WM_DELETE_WINDOW", self.ferme)
@@ -265,7 +292,7 @@ class FenetreParametres:
 
         tk.Label(corps, text="Saisie", font=police_titre, bg=c["fond"], fg=c["texte"],
                  anchor="w").pack(fill="x")
-        tk.Label(corps, text="Clavier Pulaar (Fulfulde) — seulement des mots pulaar",
+        tk.Label(corps, text=f"{NOM} — seulement des mots pulaar",
                  font=self.police_detail, bg=c["fond"], fg=c["detail"], anchor="w").pack(fill="x", pady=(0, 14))
 
         self.interrupteurs = {}
@@ -300,7 +327,7 @@ class FenetreParametres:
         tk.Label(corps, text="Démarrage", font=police_section, bg=c["fond"], fg=c["texte"],
                  anchor="w").pack(fill="x", pady=(14, 6))
         self._carte(corps, None, "Démarrer avec Windows",
-                    "Le clavier Pulaar se lance tout seul à l'ouverture de la session.",
+                    f"{NOM} se lance tout seul à l'ouverture de la session.",
                     valeur=demarre_avec_windows(), action=self._demarrage)
 
         self.message = tk.Label(corps, text="", font=self.police_detail, bg=c["fond"], fg=c["detail"],

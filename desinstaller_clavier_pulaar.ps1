@@ -1,5 +1,5 @@
 ﻿# ============================================================
-#  Desinstalle le Clavier Pulaar (Fulfulde)
+#  Desinstalle Fulfulde Keyboard (clavier pulaar)
 # ============================================================
 #  Retire FUL (Pulaar) de la liste Win + Espace et le demarrage automatique
 #  (utilisateur), puis les anciennes dispositions et l'entree des applications
@@ -13,7 +13,7 @@ $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
 # disposition principale de la langue pulaar (ff-Latn-SN) ; a0010867, le
 # QWERTY ; a0000867, l'ancienne inscription de l'AZERTY.
 $klids = @('00000867', 'a0010867', 'a0000867')
-# Sous FUL, le Clavier Pulaar met aussi les claviers Francais et Anglais de
+# Sous FUL, Fulfulde Keyboard met aussi les claviers Francais et Anglais de
 # Windows : ils partent de la liste avec lui, mais restent dans Windows.
 $claviersFul = $klids + @('0000040c', '00000409')
 $nosDll = @('fulffaz.dll', 'fulffqw.dll', 'kbdfulfa.dll', 'kbdfulfq.dll')
@@ -55,8 +55,11 @@ if ($MachineOnly) {
 Get-CimInstance Win32_Process -Filter "Name = 'pythonw.exe' OR Name = 'python.exe'" |
     Where-Object { $_.CommandLine -like '*clavier_fulfulde_natif.py*' } |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
-Get-Process -Name 'ClavierPulaar' -ErrorAction SilentlyContinue | Stop-Process -Force
-Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'ClavierPulaar' -ErrorAction SilentlyContinue
+# Le programme et son demarrage automatique, sous le nom actuel et l'ancien (2.4.1 et avant)
+Get-Process -Name 'FulfuldeKeyboard', 'ClavierPulaar' -ErrorAction SilentlyContinue | Stop-Process -Force
+foreach ($nom in 'FulfuldeKeyboard', 'ClavierPulaar') {
+    Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name $nom -ErrorAction SilentlyContinue
+}
 & (Join-Path (Split-Path -Parent $PSCommandPath) 'correcteur_pulaar\enregistrer_correcteur.ps1') -Retirer
 
 $liste = Get-WinUserLanguageList
@@ -74,4 +77,4 @@ if (Test-Administrateur) {
     Start-Process powershell.exe -Verb RunAs -Wait -ArgumentList @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-MachineOnly')
 }
-Write-Host 'Clavier Pulaar desinstalle.' -ForegroundColor Green
+Write-Host 'Fulfulde Keyboard desinstalle.' -ForegroundColor Green

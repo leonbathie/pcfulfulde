@@ -1,7 +1,7 @@
 ﻿; ============================================================
-;  Installateur du Clavier Pulaar (Fulfulde)
+;  Installateur de Fulfulde Keyboard (clavier pulaar)
 ; ============================================================
-;  Produit Setup_Clavier_Pulaar.exe (installateur\fabriquer_installateur.ps1).
+;  Produit Setup_Fulfulde_Keyboard.exe (installateur\fabriquer_installateur.ps1).
 ;  L'assistant copie le clavier dans Program Files, puis lance
 ;  installer_clavier_pulaar.ps1 en trois parties : retrait des anciens claviers
 ;  Pulaar de Win + Espace, effacement de leurs dispositions (administrateur),
@@ -9,8 +9,8 @@
 ;  Windows, le correcteur orthographique et le moteur, qui place lui-même les
 ;  lettres pulaar quand FUL est choisi.
 
-#define Nom "Clavier Pulaar (Fulfulde)"
-#define Version "2.4.1"
+#define Nom "Fulfulde Keyboard"
+#define Version "2.5"
 #define Racine ".."
 
 [Setup]
@@ -21,12 +21,15 @@ AppVerName={#Nom} {#Version}
 AppPublisher=Fulfulde Community
 AppPublisherURL=https://github.com/leonbathie/pcfulfulde
 AppSupportURL=https://github.com/leonbathie/pcfulfulde
-DefaultDirName={autopf}\Clavier Pulaar
+DefaultDirName={autopf}\Fulfulde Keyboard
+; Les versions 2.4.1 et avant s'installaient dans « Clavier Pulaar » : la mise
+; à jour va dans le nouveau dossier, et [InstallDelete] retire l'ancien.
+UsePreviousAppDir=no
 DisableProgramGroupPage=yes
 OutputDir={#Racine}
-OutputBaseFilename=Setup_Clavier_Pulaar
+OutputBaseFilename=Setup_Fulfulde_Keyboard
 SetupIconFile={#Racine}\icones\clavier_pulaar.ico
-UninstallDisplayIcon={app}\ClavierPulaar.exe
+UninstallDisplayIcon={app}\FulfuldeKeyboard.exe
 UninstallDisplayName={#Nom}
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -79,11 +82,11 @@ Name: "thai"; MessagesFile: "compiler:Languages\Thai.isl"
 Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"
 Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
-; Messages propres au Clavier Pulaar : en anglais pour toutes les langues, en
+; Messages propres à Fulfulde Keyboard : en anglais pour toutes les langues, en
 ; français pour le français.
 [Messages]
-FinishedLabel=The Pulaar Keyboard is installed.%n%nPress Win + Space and choose FUL, with the French (AZERTY) or English (QWERTY) keyboard: v gives ɓ, z gives ɗ, q gives ŋ, x gives ƴ, and suggestions appear above the cursor: Tab takes the highlighted one, ← → highlight another. With French or English, your keyboard does not change.%n%nSettings are behind the ɓ icon, next to the clock.
-french.FinishedLabel=Le Clavier Pulaar est installé.%n%nAppuyez sur Win + Espace et choisissez FUL, avec le clavier Français (AZERTY) ou Anglais (QWERTY) : v donne ɓ, z donne ɗ, q donne ŋ, x donne ƴ, et les suggestions apparaissent au-dessus du curseur : Tab prend la suggestion en surbrillance, ← → en surlignent une autre. Avec Français ou Anglais, votre clavier ne change pas.%n%nLes réglages sont derrière l'icône ɓ, près de l'horloge.
+FinishedLabel=Fulfulde Keyboard is installed.%n%nPress Win + Space and choose FUL, with the French (AZERTY) or English (QWERTY) keyboard: v gives ɓ, z gives ɗ, q gives ŋ, x gives ƴ, and suggestions appear above the cursor: Tab takes the highlighted one, ← → highlight another. With French or English, your keyboard does not change.%n%nSettings are behind the ɓ icon, next to the clock.
+french.FinishedLabel=Fulfulde Keyboard est installé.%n%nAppuyez sur Win + Espace et choisissez FUL, avec le clavier Français (AZERTY) ou Anglais (QWERTY) : v donne ɓ, z donne ɗ, q donne ŋ, x donne ƴ, et les suggestions apparaissent au-dessus du curseur : Tab prend la suggestion en surbrillance, ← → en surlignent une autre. Avec Français ou Anglais, votre clavier ne change pas.%n%nLes réglages sont derrière l'icône ɓ, près de l'horloge.
 
 [CustomMessages]
 Preparation=Preparing the Pulaar keyboards...
@@ -95,8 +98,14 @@ french.PulaarWinEspace=FUL (Pulaar) dans Win + Espace, correcteur et suggestions
 Commentaire=Pulaar word suggestions and corrections
 french.Commentaire=Suggestions et correction en pulaar
 
+[InstallDelete]
+; L'ancien nom (versions 2.4.1 et avant) : le dossier et le raccourci
+; « Clavier Pulaar ». Le moteur est déjà arrêté (PrepareToInstall).
+Type: filesandordirs; Name: "{autopf}\Clavier Pulaar"
+Type: files; Name: "{autoprograms}\Clavier Pulaar.lnk"
+
 [Files]
-Source: "{#Racine}\construction\dist\ClavierPulaar\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#Racine}\construction\dist\FulfuldeKeyboard\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#Racine}\installer_clavier_pulaar.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Racine}\desinstaller_clavier_pulaar.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Racine}\correcteur_pulaar\correcteur_pulaar.dll"; DestDir: "{app}\correcteur_pulaar"; Flags: ignoreversion
@@ -105,7 +114,7 @@ Source: "{#Racine}\dictionary\mots_pulaar.txt"; DestDir: "{app}\dictionary"; Fla
 Source: "{#Racine}\icones\clavier_pulaar.ico"; DestDir: "{app}\icones"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\Clavier Pulaar"; Filename: "{app}\ClavierPulaar.exe"; Comment: "{cm:Commentaire}"
+Name: "{autoprograms}\Fulfulde Keyboard"; Filename: "{app}\FulfuldeKeyboard.exe"; Comment: "{cm:Commentaire}"
 
 [Run]
 ; Dans cet ordre : les anciens claviers Pulaar quittent la liste Win + Espace
@@ -127,7 +136,7 @@ procedure ArreteLeMoteur;
 var
   Code: Integer;
 begin
-  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM ClavierPulaar.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
+  Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM FulfuldeKeyboard.exe /IM ClavierPulaar.exe', '', SW_HIDE, ewWaitUntilTerminated, Code);
   Exec('powershell.exe', '-NoProfile -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -like ''*clavier_fulfulde_natif*'' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"', '', SW_HIDE, ewWaitUntilTerminated, Code);
 end;
 

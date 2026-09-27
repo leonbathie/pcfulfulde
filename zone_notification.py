@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Icône du Clavier Pulaar dans la zone de notification, près de l'horloge.
+Icône de Fulfulde Keyboard dans la zone de notification, près de l'horloge.
 
 Clic : ouvre les paramètres. Clic droit : menu (Paramètres, Suggestions,
 Correction automatique, Quitter).
@@ -132,7 +132,7 @@ class IconeNotification:
         classe.hInstance = instance
         classe.lpszClassName = "ClavierPulaarNotification"
         user32.RegisterClassExW(ctypes.byref(classe))
-        self.hwnd = user32.CreateWindowExW(0, classe.lpszClassName, "Clavier Pulaar", 0,
+        self.hwnd = user32.CreateWindowExW(0, classe.lpszClassName, "Fulfulde Keyboard", 0,
                                            0, 0, 0, 0, None, None, instance, None)
         # Explorer redémarré : la barre des tâches renaît vide, on y remet l'icône.
         self._barre_recreee = user32.RegisterWindowMessageW("TaskbarCreated")

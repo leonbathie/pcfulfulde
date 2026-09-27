@@ -1,12 +1,12 @@
 @echo off
-title Installation du Clavier Pulaar (Fulfulde)
+title Installation de Fulfulde Keyboard
 color 0A
 cls
 echo ============================================================
-echo   INSTALLATION DU CLAVIER PULAAR (FULFULDE)
+echo   INSTALLATION DE FULFULDE KEYBOARD
 echo ============================================================
 echo.
-echo Le clavier Pulaar va etre ajoute a Windows (Win + Espace : FUL),
+echo Fulfulde Keyboard va etre ajoute a Windows (Win + Espace : FUL),
 echo avec ses suggestions et sa correction automatique.
 echo Cliquez sur 'Oui' quand Windows demande une autorisation.
 echo.

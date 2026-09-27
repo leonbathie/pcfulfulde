@@ -1,5 +1,5 @@
 ﻿# ============================================================
-#  Installe le Clavier Pulaar (Fulfulde)
+#  Installe Fulfulde Keyboard (clavier pulaar)
 # ============================================================
 #  FUL (Pulaar, ff-Latn-SN) apparait dans Win + Espace avec deux claviers de
 #  Windows : Francais (AZERTY) et Anglais (QWERTY). Quand FUL est choisi, le
@@ -29,7 +29,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $ici = Split-Path -Parent $PSCommandPath
-$exe = Join-Path $ici 'ClavierPulaar.exe'
+$exe = Join-Path $ici 'FulfuldeKeyboard.exe'
 $empaquete = Test-Path $exe
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
 # Les claviers de FUL : ceux de Windows, Francais (AZERTY) et Anglais (QWERTY).
@@ -132,8 +132,8 @@ function Install-Machine {
     }
     if (-not (Test-Path $cleDesinstallation)) { New-Item -Path $cleDesinstallation -Force | Out-Null }
     $desinstaller = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$ici\desinstaller_clavier_pulaar.ps1`""
-    Set-ItemProperty $cleDesinstallation -Name 'DisplayName' -Value 'Clavier Pulaar (Fulfulde)'
-    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.4.1'
+    Set-ItemProperty $cleDesinstallation -Name 'DisplayName' -Value 'Fulfulde Keyboard'
+    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.5'
     Set-ItemProperty $cleDesinstallation -Name 'Publisher' -Value 'Fulfulde Community'
     Set-ItemProperty $cleDesinstallation -Name 'DisplayIcon' -Value "$ici\icones\clavier_pulaar.ico"
     Set-ItemProperty $cleDesinstallation -Name 'InstallLocation' -Value $ici
@@ -174,8 +174,10 @@ function Install-Utilisateur {
     if ($SansMoteur) { return }
     Write-Host '      Moteur (lettres pulaar et suggestions)...' -ForegroundColor Yellow
     $demarrage = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+    # L'ancien nom (versions 2.4.1 et avant) quitte les applications de demarrage.
+    Remove-ItemProperty $demarrage -Name 'ClavierPulaar' -ErrorAction SilentlyContinue
     if ($empaquete) {
-        Set-ItemProperty $demarrage -Name 'ClavierPulaar' -Value "`"$exe`""
+        Set-ItemProperty $demarrage -Name 'FulfuldeKeyboard' -Value "`"$exe`""
         Start-Process $exe
         Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
         return
@@ -192,7 +194,7 @@ function Install-Utilisateur {
         & $python -m pip install --user pynput
     }
     $script = Join-Path $ici 'clavier_fulfulde_natif.py'
-    Set-ItemProperty $demarrage -Name 'ClavierPulaar' -Value "`"$pythonw`" `"$script`""
+    Set-ItemProperty $demarrage -Name 'FulfuldeKeyboard' -Value "`"$pythonw`" `"$script`""
     Start-Process $pythonw -ArgumentList "`"$script`""
     Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
 }
@@ -212,7 +214,7 @@ if ($UtilisateurSeulement) {
 }
 
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host '   INSTALLATION DU CLAVIER PULAAR (FULFULDE)' -ForegroundColor Green
+Write-Host '   INSTALLATION DE FULFULDE KEYBOARD' -ForegroundColor Green
 Write-Host '============================================================' -ForegroundColor Cyan
 Install-Preparation
 if (Test-Administrateur) {

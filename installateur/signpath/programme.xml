@@ -4,7 +4,7 @@
      (.github/workflows/installateur.yml), avant d'entrer dans l'installateur. -->
 <artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
   <zip-file>
-    <pe-file path="ClavierPulaar.exe">
+    <pe-file path="FulfuldeKeyboard.exe">
       <authenticode-sign />
     </pe-file>
     <pe-file path="correcteur_pulaar.dll">

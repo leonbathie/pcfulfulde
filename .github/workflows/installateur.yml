@@ -1,4 +1,4 @@
-# Fabrique l'installateur du Clavier Pulaar sur les machines Windows de GitHub,
+# Fabrique l'installateur de Fulfulde Keyboard sur les machines Windows de GitHub,
 # à partir du code de ce dépôt, et le fait signer par SignPath Foundation.
 #
 # - À chaque envoi sur main : fabrication seule, pour vérifier que tout se
@@ -43,7 +43,7 @@ jobs:
           cargo build --release --manifest-path correcteur_pulaar/Cargo.toml
           Copy-Item correcteur_pulaar/target/release/correcteur_pulaar.dll correcteur_pulaar/correcteur_pulaar.dll -Force
 
-      - name: ClavierPulaar.exe
+      - name: FulfuldeKeyboard.exe
         run: ./installateur/fabriquer_installateur.ps1 -Etape programme
 
       # --- Signature du programme et du correcteur -----------------------
@@ -51,7 +51,7 @@ jobs:
         if: env.SIGNER == 'true'
         run: |
           New-Item -ItemType Directory a_signer | Out-Null
-          Copy-Item construction/dist/ClavierPulaar/ClavierPulaar.exe, correcteur_pulaar/correcteur_pulaar.dll a_signer/
+          Copy-Item construction/dist/FulfuldeKeyboard/FulfuldeKeyboard.exe, correcteur_pulaar/correcteur_pulaar.dll a_signer/
 
       - name: Programme non signé
         id: programme-non-signe
@@ -78,19 +78,19 @@ jobs:
       - name: Programme signé à sa place
         if: env.SIGNER == 'true'
         run: |
-          Copy-Item programme-signe/ClavierPulaar.exe construction/dist/ClavierPulaar/ -Force
+          Copy-Item programme-signe/FulfuldeKeyboard.exe construction/dist/FulfuldeKeyboard/ -Force
           Copy-Item programme-signe/correcteur_pulaar.dll correcteur_pulaar/ -Force
 
       # --- Installateur -----------------------------------------------------
-      - name: Setup_Clavier_Pulaar.exe
+      - name: Setup_Fulfulde_Keyboard.exe
         run: ./installateur/fabriquer_installateur.ps1 -Etape installateur
 
       - name: Installateur non signé
         id: installateur-non-signe
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.SIGNER == 'true' && 'installateur-non-signe' || 'Setup_Clavier_Pulaar' }}
-          path: Setup_Clavier_Pulaar.exe
+          name: ${{ env.SIGNER == 'true' && 'installateur-non-signe' || 'Setup_Fulfulde_Keyboard' }}
+          path: Setup_Fulfulde_Keyboard.exe
 
       - name: Signature de l'installateur (SignPath)
         if: env.SIGNER == 'true'
@@ -110,8 +110,8 @@ jobs:
         if: env.SIGNER == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: Setup_Clavier_Pulaar
-          path: installateur-signe/Setup_Clavier_Pulaar.exe
+          name: Setup_Fulfulde_Keyboard
+          path: installateur-signe/Setup_Fulfulde_Keyboard.exe
 
       # --- Publication d'une version ----------------------------------------
       - name: Publier la version
@@ -119,11 +119,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $setup = if ($env:SIGNER -eq 'true') { 'installateur-signe/Setup_Clavier_Pulaar.exe' } else { 'Setup_Clavier_Pulaar.exe' }
-          $notes = "Installateur du Clavier Pulaar (Fulfulde) pour Windows 10 et 11. Lancez Setup_Clavier_Pulaar.exe, puis choisissez FUL avec Win + Espace : v donne ɓ, z ɗ, q ŋ, x ƴ, et les suggestions pulaar apparaissent au-dessus du curseur. Avec Français ou Anglais, rien ne change."
+          $setup = if ($env:SIGNER -eq 'true') { 'installateur-signe/Setup_Fulfulde_Keyboard.exe' } else { 'Setup_Fulfulde_Keyboard.exe' }
+          $notes = "Installateur de Fulfulde Keyboard (clavier pulaar) pour Windows 10 et 11. Lancez Setup_Fulfulde_Keyboard.exe, puis choisissez FUL avec Win + Espace : v donne ɓ, z ɗ, q ŋ, x ƴ, et les suggestions pulaar apparaissent au-dessus du curseur. Avec Français ou Anglais, rien ne change."
           if ($env:SIGNER -eq 'true') {
             $notes += "`n`nFree code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)."
           } else {
             $notes += "`n`nCet installateur n'est pas encore signé : Windows peut afficher « Windows a protégé votre ordinateur ». Cliquez sur « Informations complémentaires », puis sur « Exécuter quand même »."
           }
-          gh release create $env:GITHUB_REF_NAME $setup --title "Clavier Pulaar $env:GITHUB_REF_NAME" --notes $notes
+          gh release create $env:GITHUB_REF_NAME $setup --title "Fulfulde Keyboard $env:GITHUB_REF_NAME" --notes $notes

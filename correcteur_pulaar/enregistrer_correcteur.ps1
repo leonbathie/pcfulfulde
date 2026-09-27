@@ -41,7 +41,7 @@ Copy-Item (Join-Path $racine 'dictionary\mots_pulaar.txt') $dossier -Force
 & icacls $dossier /grant '*S-1-15-2-1:(OI)(CI)RX' '*S-1-15-2-2:(OI)(CI)RX' /T /Q | Out-Null
 
 New-Item -Path "$cleClasse\InprocServer32" -Force | Out-Null
-Set-Item -Path $cleClasse -Value 'Correcteur pulaar (Clavier Pulaar)'
+Set-Item -Path $cleClasse -Value 'Correcteur pulaar (Fulfulde Keyboard)'
 Set-Item -Path "$cleClasse\InprocServer32" -Value $dll
 Set-ItemProperty -Path "$cleClasse\InprocServer32" -Name 'ThreadingModel' -Value 'Both'
 New-Item -Path "$cleClasse\Version" -Force | Out-Null

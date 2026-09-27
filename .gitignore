@@ -9,6 +9,7 @@ __pycache__/
 # L'exe et l'installateur se refabriquent : installateur/fabriquer_installateur.ps1
 /construction/
 /Setup_Clavier_Pulaar.exe
+/Setup_Fulfulde_Keyboard.exe
 
 # Sauvegardes locales et fichiers de travail
 _sauvegarde_*/

@@ -1,22 +1,22 @@
-# Clavier Pulaar (Fulfulde) pour Windows
+# Fulfulde Keyboard pour Windows
 
-> Un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace** (FUL), donne les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ), propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Avec Français ou Anglais, rien ne change. Uniquement des mots pulaar.
+> **Fulfulde Keyboard**, un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace** (FUL), donne les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ), propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Avec Français ou Anglais, rien ne change. Uniquement des mots pulaar.
 
 ---
 
 ## Download
 
-*Télécharger.* Les versions sont publiées dans **[Releases](https://github.com/leonbathie/pcfulfulde/releases)** : téléchargez `Setup_Clavier_Pulaar.exe`. Les installateurs signés le sont par SignPath Foundation : free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/) (voir [Code signing policy](#code-signing-policy)).
+*Télécharger.* Les versions sont publiées dans **[Releases](https://github.com/leonbathie/pcfulfulde/releases)** : téléchargez `Setup_Fulfulde_Keyboard.exe`. Les installateurs signés le sont par SignPath Foundation : free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/) (voir [Code signing policy](#code-signing-policy)).
 
 ---
 
 ## 🚀 Installation (une fois)
 
-1. Lancez **`Setup_Clavier_Pulaar.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Clavier Pulaar`.
+1. Lancez **`Setup_Fulfulde_Keyboard.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Fulfulde Keyboard`. Une version précédente (« Clavier Pulaar ») est remplacée, avec ses réglages et vos mots retenus.
 2. Appuyez sur **Win + Espace** : **FUL** apparaît à côté de FRA et ENG, deux fois, avec le clavier Français (AZERTY) et avec le clavier Anglais (QWERTY) de Windows. Choisissez celui qui correspond à votre clavier.
 3. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
 
-Pour tout retirer : **Paramètres > Applications > Clavier Pulaar (Fulfulde) > Désinstaller**.
+Pour tout retirer : **Paramètres > Applications > Fulfulde Keyboard > Désinstaller**.
 
 L'assistant lance `installer_clavier_pulaar.ps1`, en trois parties :
 - les claviers « Pulaar (Fulfulde) AZERTY / QWERTY » des versions précédentes quittent d'abord la liste Win + Espace. Le sélecteur Win + Espace de Windows 11 (`InputSwitch.dll`) plantait sur eux et emportait l'Explorateur : depuis la version 24H2, il ne connaît que les dispositions de Windows ;
@@ -31,7 +31,7 @@ L'assistant lance `installer_clavier_pulaar.ps1`, en trois parties :
 powershell -ExecutionPolicy Bypass -File installateur\fabriquer_installateur.ps1
 ```
 
-Le script transforme le clavier en `ClavierPulaar.exe` avec PyInstaller, puis produit `Setup_Clavier_Pulaar.exe` avec Inno Setup 6 (`installateur\clavier_pulaar.iss`). Il faut Python avec `pynput` et `pyinstaller`, et Inno Setup 6.
+Le script transforme le clavier en `FulfuldeKeyboard.exe` avec PyInstaller, puis produit `Setup_Fulfulde_Keyboard.exe` avec Inno Setup 6 (`installateur\clavier_pulaar.iss`). Il faut Python avec `pynput` et `pyinstaller`, et Inno Setup 6.
 
 ### Signer l'installateur (pour le partager)
 
@@ -47,7 +47,7 @@ $env:CLAVIER_PULAAR_CERTIFICAT = "<empreinte du certificat>"   # ou CLAVIER_PULA
 powershell -ExecutionPolicy Bypass -File installateur\fabriquer_installateur.ps1 -Signer
 ```
 
-`ClavierPulaar.exe`, l'installateur et son désinstalleur sont alors signés et horodatés (`installateur\signer.ps1`).
+`FulfuldeKeyboard.exe`, l'installateur et son désinstalleur sont alors signés et horodatés (`installateur\signer.ps1`).
 
 Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la même chose, avec le moteur lancé par Python (`LANCER_CLAVIER.bat`).
 
@@ -89,7 +89,7 @@ Cliquez sur l'icône **ɓ** près de l'horloge. Une fenêtre semblable à la pag
 - les mots retenus ;
 - le démarrage avec Windows.
 
-Un clic droit sur l'icône donne les mêmes interrupteurs et permet de **Quitter**. Tout est rangé dans `%APPDATA%\ClavierPulaar` :
+Un clic droit sur l'icône donne les mêmes interrupteurs et permet de **Quitter**. Tout est rangé dans `%APPDATA%\FulfuldeKeyboard` :
 - `parametres.json` : les réglages ;
 - `mots_appris.json` : les mots retenus ;
 - `journal.txt` : les messages du moteur, jamais le texte tapé (claviers rencontrés, erreurs, crochet clavier reposé).
@@ -182,7 +182,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - **Committers and reviewers** (auteurs et relecteurs) : [leonbathie](https://github.com/leonbathie), members of this repository with write access.
 - **Approvers** (approbateurs) : [leonbathie](https://github.com/leonbathie).
 
-Only the files built by GitHub Actions from this repository (`.github/workflows/installateur.yml`) are signed: `ClavierPulaar.exe`, `correcteur_pulaar.dll` and `Setup_Clavier_Pulaar.exe`. Every signing request is approved by hand. The keyboard layout files `fulffaz.dll` and `fulffqw.dll`, built from `fulffaz.klc` and `fulffqw.klc` with Microsoft Keyboard Layout Creator, are shipped unsigned inside the installer.
+Only the files built by GitHub Actions from this repository (`.github/workflows/installateur.yml`) are signed: `FulfuldeKeyboard.exe`, `correcteur_pulaar.dll` and `Setup_Fulfulde_Keyboard.exe`. Every signing request is approved by hand.
 
 Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont signés, et chaque signature est approuvée à la main. Les dispositions de clavier `fulffaz.dll` et `fulffqw.dll` sont livrées sans signature dans l'installateur.
 
@@ -190,7 +190,7 @@ Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont si
 
 *Vie privée.*
 
-This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The words it learns stay on the computer (`%APPDATA%\ClavierPulaar`).
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The words it learns stay on the computer (`%APPDATA%\FulfuldeKeyboard`).
 
 Ce programme ne transmet aucune information à d'autres systèmes en réseau, sauf demande expresse de l'utilisateur. Les mots qu'il retient restent sur l'ordinateur.
 
