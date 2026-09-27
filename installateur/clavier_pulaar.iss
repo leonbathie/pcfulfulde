@@ -10,7 +10,7 @@
 ;  lettres pulaar quand FUL est choisi.
 
 #define Nom "Clavier Pulaar (Fulfulde)"
-#define Version "2.4"
+#define Version "2.4.1"
 #define Racine ".."
 
 [Setup]

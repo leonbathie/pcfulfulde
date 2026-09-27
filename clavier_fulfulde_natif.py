@@ -97,11 +97,11 @@ NOMS_DES_MODIFICATEURS = {VK_LSHIFT: "Maj", VK_RSHIFT: "Maj", VK_LCONTROL: "Ctrl
                           VK_RCONTROL: "Ctrl", VK_LMENU: "Alt", VK_RMENU: "AltGr",
                           VK_LWIN: "Windows", VK_RWIN: "Windows"}
 
-# Sans le clavier Pulaar de Windows (Français, Anglais…), le moteur place
-# lui-même les lettres pulaar comme les dispositions de generate_klc.py : les
-# mêmes lettres en AZERTY et en QWERTY (codes de touche), ñ sur la touche à
-# droite de P (^ en AZERTY, [ en QWERTY : même code de position), la hamza ’
-# sur ² (AZERTY) ou ' (QWERTY).
+# Quand FUL (Pulaar) est choisi, le moteur place lui-même les lettres pulaar
+# comme les dispositions de generate_klc.py : les mêmes lettres en AZERTY et
+# en QWERTY (codes de touche), ñ sur la touche à droite de P (^ en AZERTY, [ en
+# QWERTY : même code de position), la hamza ’ sur Maj + ² (AZERTY, ² reste ²)
+# ou sur ' (QWERTY).
 LETTRES_PULAAR = {0x51: "ŋŊ", 0x56: "ɓƁ", 0x58: "ƴƳ", 0x5A: "ɗƊ"}   # Q V X Z
 SCAN_A_DROITE_DE_P = 0x1A
 # AltGr + touche, là où la disposition de Windows ne met rien (AltGr + E
@@ -1265,8 +1265,9 @@ class FulfuldeEngine:
         if scan == SCAN_A_DROITE_DE_P:
             paire = "ñÑ"
         elif vk == VK_OEM_7:
+            # La hamza ’ : Maj + ² en AZERTY (² reste ²), ' en QWERTY (Maj + ' reste ").
             normal = get_char_from_vk(vk, scan, layout=layout, morte=True)
-            if normal == "²" or (normal == "'" and not self.shift_pressed):
+            if (normal == "²" and self.shift_pressed) or (normal == "'" and not self.shift_pressed):
                 paire = "’’"
         if not self.alt_gr_pressed:
             return paire[maj] if paire else None

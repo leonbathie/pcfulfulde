@@ -109,7 +109,8 @@ Quand **FUL (Pulaar)** est choisi dans Win + Espace, le moteur place les lettres
 | `q` | **ŋ** | **Ŋ** | q |
 | `x` | **ƴ** | **Ƴ** | x |
 | à droite de P (`^` ou `[`) | **ñ** | **Ñ** | ^ ou [ |
-| `²` (AZERTY) ou `'` (QWERTY) | **’** (hamza) | | |
+| `²` (AZERTY) | ² | **’** (hamza) | |
+| `'` (QWERTY) | **’** (hamza) | " | ' |
 | `b`, `d`, `n`, `y` | | | **ɓ**, **ɗ**, **ŋ**, **ƴ** |
 | `a`, `e`, `u`, `i`, `o` | | | **á**, **é**, **ú**, **í**, **ó** |
 
