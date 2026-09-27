@@ -33,7 +33,7 @@ Get-AppxPackage *.FulfuldeKeyboard | Remove-AppxPackage
 ## 3. Soumission
 
 - **Tarification et disponibilité** : gratuit, tous les marchés.
-- **Propriétés** : catégorie *Utilitaires et outils* (ou *Productivité*). Politique de confidentialité : `https://github.com/leonbathie/pcfulfulde#privacy-policy`. Site web et assistance : `https://github.com/leonbathie/pcfulfulde`.
+- **Propriétés** : catégorie *Utilitaires et outils* (ou *Productivité*). Politique de confidentialité : `https://leonbathie.github.io/pcfulfulde/privacy.html`. Site web : `https://leonbathie.github.io/pcfulfulde/`. Assistance : `https://github.com/leonbathie/pcfulfulde/issues`.
 - **Classification par âge** : questionnaire ; aucune violence, aucun achat, aucun échange entre utilisateurs.
 - **Packages** : déposer le `.msix`.
 - **Description dans le Store (français)** : le texte ci-dessous, et au moins une capture d'écran de 1366 × 768 ou plus (la bulle de suggestions dans Word ou le Bloc-notes, la fenêtre de paramètres).

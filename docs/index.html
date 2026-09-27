@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fulfulde Keyboard</title>
+<meta name="description" content="Fulfulde Keyboard, le clavier pulaar pour Windows : lettres ɓ ɗ ŋ ƴ ñ, suggestions et correction de mots pulaar.">
+<style>
+  :root { --fond: #ffffff; --texte: #1a1a1a; --detail: #5f5f5f; --carte: #f5f5f5; --lien: #005fb8; --vert: #00853f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fond: #1f1f1f; --texte: #f3f3f3; --detail: #c8c8c8; --carte: #2b2b2b; --lien: #4cc2ff; --vert: #3fbf7f; }
+  }
+  body { margin: 0; background: var(--fond); color: var(--texte);
+         font: 16px/1.6 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; }
+  header { display: flex; align-items: center; gap: 16px; }
+  .touche { width: 64px; height: 64px; border-radius: 14px; background: var(--vert); color: #fff;
+            display: grid; place-items: center; font-size: 46px; font-weight: 700; flex: none; }
+  h1 { font-size: 2rem; margin: 0; }
+  .soustitre { color: var(--detail); margin: .2em 0 0; }
+  .liens { display: grid; gap: 10px; margin: 28px 0; padding: 0; list-style: none; }
+  .liens a { display: block; padding: 14px 18px; border-radius: 8px; background: var(--carte);
+             color: var(--texte); text-decoration: none; }
+  .liens a strong { color: var(--lien); }
+  p { margin: .8em 0; }
+  footer { color: var(--detail); font-size: .9rem; margin-top: 40px; }
+  footer a { color: var(--lien); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="touche" aria-hidden="true">ɓ</div>
+    <div>
+      <h1>Fulfulde Keyboard</h1>
+      <p class="soustitre">Le clavier pulaar pour Windows · Taro Learning</p>
+    </div>
+  </header>
+
+  <p>Choisissez FUL avec Win + Espace : les touches donnent les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ, ^ ou [ → ñ), une bulle propose des mots pulaar au-dessus du curseur (Tab pour choisir), et les fautes sont corrigées à l'espace. Avec Français ou Anglais, votre clavier ne change pas. Tout reste sur votre ordinateur.</p>
+
+  <ul class="liens">
+    <li><a href="https://github.com/leonbathie/pcfulfulde/releases/latest"><strong>Télécharger</strong> l'installateur pour Windows 10 et 11</a></li>
+    <li><a href="https://apps.microsoft.com/detail/9PP6JXXL9HS4"><strong>Microsoft Store</strong></a></li>
+    <li><a href="privacy.html"><strong>Politique de confidentialité</strong> · Privacy policy</a></li>
+    <li><a href="https://github.com/leonbathie/pcfulfulde"><strong>Code source</strong> et aide</a></li>
+  </ul>
+
+  <footer>© 2026 Taro Learning · Licence MIT</footer>
+</main>
+</body>
+</html>

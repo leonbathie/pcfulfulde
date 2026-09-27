@@ -188,7 +188,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 Only the files built by GitHub Actions from this repository (`.github/workflows/installateur.yml`) are signed: `FulfuldeKeyboard.exe`, `correcteur_pulaar.dll` and `Fulfulde_Keyboard.exe`. Every signing request is approved by hand.
 
-Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont signés, et chaque signature est approuvée à la main. Les dispositions de clavier `fulffaz.dll` et `fulffqw.dll` sont livrées sans signature dans l'installateur.
+Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont signés, et chaque signature est approuvée à la main.
 
 ### Privacy policy
 
@@ -197,6 +197,8 @@ Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont si
 This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The words it learns stay on the computer (`%APPDATA%\FulfuldeKeyboard`).
 
 Ce programme ne transmet aucune information à d'autres systèmes en réseau, sauf demande expresse de l'utilisateur. Les mots qu'il retient restent sur l'ordinateur.
+
+Full policy / politique complète : https://leonbathie.github.io/pcfulfulde/privacy.html
 
 ---
 
