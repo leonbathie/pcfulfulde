@@ -1366,6 +1366,12 @@ def run():
     engine.bubble.root.after(60_000, sauvegarde_reguliere)
     # Tkinter tient le fil principal : Ctrl+C passe par la bulle pour s'arrêter.
     signal.signal(signal.SIGINT, lambda *_: engine.bubble.arrete())
+    if not engine.parametres["ful_propose"] and not pc.ful_dans_win_espace():
+        # Sans FUL dans Win + Espace, le clavier ne ferait rien : la fenêtre de
+        # paramètres propose de l'ajouter, une fois (version du Microsoft Store,
+        # ou FUL retiré de la liste).
+        engine.parametres["ful_propose"] = True
+        engine.open_settings()
     try:
         engine.bubble.lance()
     finally:

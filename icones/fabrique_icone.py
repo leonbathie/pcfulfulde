@@ -8,7 +8,9 @@ nécessaire qu'ici : le clavier lui-même n'en a pas besoin) :
   tâches, paramètres) ;
 - interrupteur_<thème>_<0|1>_<échelle>.png : l'interrupteur de Windows 11 de
   la fenêtre de paramètres, désactivé et activé, en thème clair et sombre, pour
-  chaque échelle d'affichage.
+  chaque échelle d'affichage ;
+- installateur/msix/Assets : les logos du paquet du Microsoft Store (menu
+  Démarrer, barre des tâches, fiche du Store), à chaque échelle.
 
 Usage : python icones/fabrique_icone.py
 """
@@ -45,6 +47,37 @@ def dessine(taille):
     return im.resize((taille, taille), Image.LANCZOS)
 
 
+def logo(largeur, hauteur, part):
+    """La touche ɓ centrée sur un fond transparent, occupant `part` du plus petit côté."""
+    cote = max(1, round(min(largeur, hauteur) * part))
+    im = Image.new("RGBA", (largeur, hauteur), (0, 0, 0, 0))
+    im.alpha_composite(dessine(cote), ((largeur - cote) // 2, (hauteur - cote) // 2))
+    return im
+
+
+# Logos du paquet MSIX : (nom, largeur, hauteur de base, part occupée par la touche).
+LOGOS_MSIX = [("Square44x44Logo", 44, 44, 1.0), ("Square150x150Logo", 150, 150, 0.66),
+              ("StoreLogo", 50, 50, 1.0)]
+ECHELLES_MSIX = (100, 125, 150, 200, 400)
+TAILLES_CIBLES = (16, 24, 32, 48, 256)
+
+
+def logos_msix(dossier):
+    os.makedirs(dossier, exist_ok=True)
+    n = 0
+    for nom, l, h, part in LOGOS_MSIX:
+        for e in ECHELLES_MSIX:
+            logo(round(l * e / 100), round(h * e / 100), part).save(
+                os.path.join(dossier, f"{nom}.scale-{e}.png"))
+            n += 1
+    # Barre des tâches et liste des applications : tailles exactes, avec et sans « plaque ».
+    for t in TAILLES_CIBLES:
+        for suffixe in ("", "_altform-unplated"):
+            logo(t, t, 1.0).save(os.path.join(dossier, f"Square44x44Logo.targetsize-{t}{suffixe}.png"))
+            n += 1
+    return n
+
+
 def interrupteur(couleurs, actif, facteur):
     """L'interrupteur de Windows 11 : une pilule bleue quand il est activé."""
     largeur, hauteur = round(40 * facteur), round(20 * facteur)
@@ -77,3 +110,6 @@ if __name__ == "__main__":
             for actif in (False, True):
                 interrupteur(couleurs, actif, echelle / 100).save(image_interrupteur(theme, actif, echelle))
     print(f"Interrupteurs écrits : {2 * 2 * len(ECHELLES_INTERRUPTEUR)} images")
+
+    assets = os.path.join(os.path.dirname(ICI), "installateur", "msix", "Assets")
+    print(f"Logos du Microsoft Store écrits : {logos_msix(assets)} images ({assets})")

@@ -51,6 +51,10 @@ powershell -ExecutionPolicy Bypass -File installateur\fabriquer_installateur.ps1
 
 Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la même chose, avec le moteur lancé par Python (`LANCER_CLAVIER.bat`).
 
+### Microsoft Store
+
+`installateur\fabriquer_msix.ps1` fabrique le paquet MSIX du Store, que Microsoft signe lui-même. Le programme y ajoute FUL à Win + Espace depuis sa fenêtre de paramètres, au premier lancement. Les étapes de publication, et les textes à coller dans l'Espace partenaires : [installateur/msix/MICROSOFT_STORE.md](installateur/msix/MICROSOFT_STORE.md).
+
 ---
 
 ## ✍️ Utilisation, comme sous Windows 11

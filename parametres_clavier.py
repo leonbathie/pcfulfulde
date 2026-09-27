@@ -15,6 +15,8 @@ import sys
 import json
 import shutil
 import ctypes
+import threading
+import subprocess
 import tkinter as tk
 import tkinter.font as tkfont
 
@@ -36,6 +38,54 @@ ICONE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icones", "clav
 CLE_DEMARRAGE = r"Software\Microsoft\Windows\CurrentVersion\Run"
 NOM_DEMARRAGE = "FulfuldeKeyboard"
 ANCIEN_NOM_DEMARRAGE = "ClavierPulaar"
+CLE_LANGUES = r"Control Panel\International\User Profile"
+# Le dossier du programme : à côté de FulfuldeKeyboard.exe (installé, ou dans
+# le paquet du Microsoft Store), ou celui des sources.
+DOSSIER_PROGRAMME = (os.path.dirname(sys.executable) if getattr(sys, "frozen", False)
+                     else os.path.dirname(os.path.abspath(__file__)))
+APPMODEL_ERROR_NO_PACKAGE = 15700
+
+
+def en_paquet():
+    """Vrai quand le clavier tourne depuis son paquet du Microsoft Store."""
+    if sys.platform != "win32":
+        return False
+    try:
+        taille = ctypes.c_uint32(0)
+        return (ctypes.windll.kernel32.GetCurrentPackageFullName(ctypes.byref(taille), None)
+                != APPMODEL_ERROR_NO_PACKAGE)
+    except AttributeError:  # avant Windows 8
+        return False
+
+
+def ful_dans_win_espace():
+    """Vrai si FUL (une langue ff-…) figure dans la liste Win + Espace."""
+    if winreg is None:
+        return False
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CLE_LANGUES) as cle:
+            langues = winreg.QueryValueEx(cle, "Languages")[0]
+    except OSError:
+        return False
+    return any(langue.lower().startswith("ff") for langue in langues)
+
+
+def ajoute_ful():
+    """Ajoute FUL (Pulaar) à Win + Espace, avec les claviers Français et Anglais
+    de Windows, et enregistre le correcteur orthographique : la partie
+    utilisateur de l'installateur, sans relancer le moteur. Sert à la version du
+    Microsoft Store, qui n'a pas d'installateur. Rend vrai si FUL y est ensuite."""
+    script = os.path.join(DOSSIER_PROGRAMME, "installer_clavier_pulaar.ps1")
+    if not os.path.exists(script):
+        return False
+    try:
+        subprocess.run(["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", script,
+                        "-UtilisateurSeulement", "-SansMoteur"],
+                       creationflags=0x08000000, timeout=180,  # CREATE_NO_WINDOW
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError) as e:
+        print(f"[FUL] {e}", file=sys.stderr)
+    return ful_dans_win_espace()
 
 
 def reprend_ancien_dossier():
@@ -60,6 +110,7 @@ PAR_DEFAUT = {
     "fleches": True,                 # ← → choisissent dans la bulle
     "retenir_les_mots": True,        # mots_appris.json
     "sans_disposition": False,       # lettres pulaar avec tous les claviers, pas seulement FUL
+    "ful_propose": False,            # la fenêtre a déjà proposé d'ajouter FUL à Win + Espace
 }
 
 # 3 : les lettres pulaar seulement quand FUL (Pulaar) est choisi dans Win +
@@ -296,8 +347,17 @@ class FenetreParametres:
                  font=self.police_detail, bg=c["fond"], fg=c["detail"], anchor="w").pack(fill="x", pady=(0, 14))
 
         self.interrupteurs = {}
+        self.carte_ful = None
+        if not ful_dans_win_espace():
+            tk.Label(corps, text="Win + Espace", font=police_section, bg=c["fond"],
+                     fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
+            self.carte_ful = self._carte(
+                corps, None, "FUL (Pulaar) n'est pas encore dans Win + Espace",
+                "Ajoutez-le pour écrire en pulaar : FUL, avec les claviers Français (AZERTY) et "
+                "Anglais (QWERTY) de Windows, et le correcteur orthographique pulaar.",
+                lien=("Ajouter FUL à Win + Espace", self._ajoute_ful))
         tk.Label(corps, text="Clavier", font=police_section, bg=c["fond"],
-                 fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
+                 fg=c["texte"], anchor="w").pack(fill="x", pady=(14 if self.carte_ful else 0, 6))
         self._carte(corps, "sans_disposition",
                     "Écrire en pulaar avec tous les claviers",
                     "Désactivé (conseillé) : les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ, "
@@ -326,9 +386,17 @@ class FenetreParametres:
 
         tk.Label(corps, text="Démarrage", font=police_section, bg=c["fond"], fg=c["texte"],
                  anchor="w").pack(fill="x", pady=(14, 6))
-        self._carte(corps, None, "Démarrer avec Windows",
-                    f"{NOM} se lance tout seul à l'ouverture de la session.",
-                    valeur=demarre_avec_windows(), action=self._demarrage)
+        if en_paquet():
+            # Version du Microsoft Store : Windows règle lui-même son démarrage.
+            self._carte(corps, None, "Démarrer avec Windows",
+                        f"{NOM} se lance tout seul à l'ouverture de la session ; Windows le règle "
+                        "dans Paramètres > Applications > Démarrage.",
+                        lien=("Ouvrir les applications de démarrage",
+                              lambda: os.startfile("ms-settings:startupapps")))
+        else:
+            self._carte(corps, None, "Démarrer avec Windows",
+                        f"{NOM} se lance tout seul à l'ouverture de la session.",
+                        valeur=demarre_avec_windows(), action=self._demarrage)
 
         self.message = tk.Label(corps, text="", font=self.police_detail, bg=c["fond"], fg=c["detail"],
                                 anchor="w")
@@ -360,12 +428,39 @@ class FenetreParametres:
             l.pack(fill="x", pady=(4, 0))
             l.bind("<Button-1>", lambda _e: commande())
 
+        if cle is None and action is None:
+            return carte  # une carte sans interrupteur, avec son seul lien
         if cle is not None:
             valeur = self.moteur.parametres[cle]
             action = lambda v, cle=cle: self.moteur.change_setting(cle, v)
         interrupteur = Interrupteur(carte, c, self.police, self.images, valeur, action)
         if cle is not None:
             self.interrupteurs[cle] = interrupteur
+        return carte
+
+    def _ajoute_ful(self):
+        """Lien « Ajouter FUL à Win + Espace » : PowerShell travaille à part, la fenêtre attend."""
+        if getattr(self, "_ajout_en_cours", False):
+            return
+        self._ajout_en_cours = True
+        self.message.configure(text="Ajout de FUL à Win + Espace…")
+        resultat = []
+        threading.Thread(target=lambda: resultat.append(ajoute_ful()), daemon=True).start()
+
+        def attend():
+            if not resultat:
+                self.fenetre.after(200, attend)
+                return
+            self._ajout_en_cours = False
+            if resultat[0]:
+                self.message.configure(text="FUL est dans Win + Espace : choisissez-le pour écrire en pulaar.")
+                if self.carte_ful is not None:
+                    self.carte_ful.destroy()
+                    self.carte_ful = None
+            else:
+                self.message.configure(text="FUL n'a pas pu être ajouté : Paramètres > Heure et langue "
+                                            "> Langue et région > Ajouter une langue.")
+        attend()
 
     def rafraichit(self):
         """Remet les interrupteurs à jour (changement fait depuis l'icône)."""
