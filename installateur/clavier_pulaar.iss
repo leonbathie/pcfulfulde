@@ -10,7 +10,7 @@
 ;  lettres pulaar quand FUL est choisi.
 
 #define Nom "Fulfulde Keyboard"
-#define Version "2.6"
+#define Version "2.6.1"
 #define Racine ".."
 
 [Setup]
@@ -18,7 +18,7 @@ AppId={{6D3F8A2E-5B7C-4E19-A0D4-2C8E1F9B7A35}
 AppName={#Nom}
 AppVersion={#Version}
 AppVerName={#Nom} {#Version}
-AppPublisher=Tarolearning
+AppPublisher=Taro Learning
 AppPublisherURL=https://github.com/leonbathie/pcfulfulde
 AppSupportURL=https://github.com/leonbathie/pcfulfulde
 DefaultDirName={autopf}\Fulfulde Keyboard

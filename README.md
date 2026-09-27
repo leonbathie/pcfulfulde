@@ -1,6 +1,6 @@
 # Fulfulde Keyboard pour Windows
 
-> **Fulfulde Keyboard** (éditeur : Tarolearning), un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace** (FUL), donne les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ), propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Avec Français ou Anglais, rien ne change. Uniquement des mots pulaar.
+> **Fulfulde Keyboard** (éditeur : Taro Learning), un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace** (FUL), donne les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ), propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Avec Français ou Anglais, rien ne change. Uniquement des mots pulaar.
 
 ---
 

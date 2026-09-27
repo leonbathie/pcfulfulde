@@ -4,7 +4,9 @@ Le Store reçoit un paquet **MSIX** et le signe lui-même : aucun certificat à 
 
 ## 1. Réserver le nom et relever l'identité du produit
 
-Dans l'[Espace partenaires](https://partner.microsoft.com/dashboard/apps-and-games/overview) : **Applications et jeux > Nouveau produit > Application MSIX ou PWA**, nom **Fulfulde Keyboard**.
+C'est fait. Le nom est réservé, avec l'identifiant Store `9PP6JXXL9HS4` : la page sera https://apps.microsoft.com/detail/9PP6JXXL9HS4 une fois l'application publiée. L'identité est `TaroLearning.FulfuldeKeyboard`, l'éditeur `CN=CFD237ED-B8B2-44F1-9175-9C8D66388F0B`, le nom affiché **Taro Learning**. Ce sont les valeurs par défaut du script.
+
+Pour mémoire, dans l'[Espace partenaires](https://partner.microsoft.com/dashboard/apps-and-games/overview) : **Applications et jeux > Nouveau produit > Application MSIX ou PWA**, nom **Fulfulde Keyboard**.
 
 Puis **Gestion du produit > Identité du produit** donne trois valeurs :
 
@@ -12,13 +14,12 @@ Puis **Gestion du produit > Identité du produit** donne trois valeurs :
 |---|---|
 | `Package/Identity/Name` | `-Nom` |
 | `Package/Identity/Publisher` (commence par `CN=`) | `-Editeur` |
-| `Package/Properties/PublisherDisplayName` (Tarolearning) | `-EditeurAffiche` |
+| `Package/Properties/PublisherDisplayName` (Taro Learning) | `-EditeurAffiche` |
 
 ## 2. Fabriquer le paquet
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File installateur\fabriquer_msix.ps1 `
-    -Nom "<Package/Identity/Name>" -Editeur "<Package/Identity/Publisher>" -EditeurAffiche "Tarolearning"
+powershell -ExecutionPolicy Bypass -File installateur\fabriquer_msix.ps1
 ```
 
 Le paquet à envoyer : `construction\msix\FulfuldeKeyboard_<version>_x64.msix`. Pour chaque nouvelle version, augmenter `#define Version` dans `installateur\clavier_pulaar.iss`.
@@ -26,7 +27,7 @@ Le paquet à envoyer : `construction\msix\FulfuldeKeyboard_<version>_x64.msix`. 
 Pour l'essayer sur un PC avant l'envoi : ajouter `-Essai`, puis suivre les deux commandes affichées à la fin (certificat d'essai, puis `Add-AppxPackage`). Retirer ensuite la version d'essai avant d'installer celle du Store :
 
 ```powershell
-Get-AppxPackage Tarolearning.FulfuldeKeyboard | Remove-AppxPackage
+Get-AppxPackage *.FulfuldeKeyboard | Remove-AppxPackage
 ```
 
 ## 3. Soumission

@@ -41,7 +41,7 @@ VSVersionInfo(
                     fileType=0x1, subtype=0x0, date=(0, 0)),
   kids=[
     StringFileInfo([StringTable('040904B0', [
-      StringStruct('CompanyName', 'Tarolearning'),
+      StringStruct('CompanyName', 'Taro Learning'),
       StringStruct('FileDescription', 'Fulfulde Keyboard'),
       StringStruct('FileVersion', '$version'),
       StringStruct('InternalName', 'FulfuldeKeyboard'),

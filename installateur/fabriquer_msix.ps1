@@ -9,7 +9,8 @@
 #  -Nom, -Editeur, -EditeurAffiche : l'identite du produit donnee par l'Espace
 #   partenaires (Produit > Gestion du produit > Identite du produit) :
 #   Package/Identity/Name, Package/Identity/Publisher (CN=...) et
-#   Package/Properties/PublisherDisplayName. Par defaut : une identite d'essai.
+#   Package/Properties/PublisherDisplayName. Par defaut : celle de Fulfulde
+#   Keyboard (Taro Learning, identifiant Store 9PP6JXXL9HS4).
 #  -Essai : signe aussi une copie avec un certificat d'essai de ce PC, pour
 #   l'installer ici avant de l'envoyer au Store (le certificat doit etre
 #   approuve une fois : voir le message a la fin).
@@ -18,9 +19,9 @@
 #  Outils : makeappx, makepri et signtool du SDK Windows, ou du paquet NuGet
 #  Microsoft.Windows.SDK.BuildTools, telecharge une fois dans construction\outils.
 param(
-    [string]$Nom = 'Tarolearning.FulfuldeKeyboard',
-    [string]$Editeur = 'CN=Tarolearning',
-    [string]$EditeurAffiche = 'Tarolearning',
+    [string]$Nom = 'TaroLearning.FulfuldeKeyboard',
+    [string]$Editeur = 'CN=CFD237ED-B8B2-44F1-9175-9C8D66388F0B',
+    [string]$EditeurAffiche = 'Taro Learning',
     [switch]$Essai,
     [switch]$SansProgramme
 )
