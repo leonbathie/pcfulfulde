@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 Moteur du Clavier Fulfulde (Pulaar) Latin pour Windows, comme les claviers de Microsoft :
-- Toujours actif, comme l'ancien clavier : avec le clavier « Pulaar » de Windows
-  (Win + Espace), qui donne lui-même ɓ ɗ ŋ ƴ ñ, et avec Français, Anglais…, où
-  le moteur place ces lettres (v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ).
-  Le réglage « Écrire en pulaar avec tous les claviers » le réserve au clavier Pulaar.
+- Toujours actif, comme l'ancien clavier : avec Français, Anglais…, le moteur
+  place lui-même les lettres pulaar (v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ).
+  Aucun clavier n'est inscrit dans Windows : ceux des versions 2.0 à 2.2
+  faisaient planter le sélecteur Win + Espace. Le réglage « Écrire en pulaar
+  avec tous les claviers » met le moteur en pause, pour écrire en français.
 - Bulle de suggestions au-dessus du curseur de texte, comme Windows 11 : le mot
   en cours, le mot suivant et les groupes de deux mots (hol ko, hay so).
   Choix : clic, TAB (suggestion en surbrillance), ← →, Alt+1..3, ou Flèche haut puis Entrée.
@@ -221,13 +222,18 @@ _dispositions_connues = {}
 
 
 def disposition_pulaar(hkl):
-    """Vrai si `hkl` est le clavier Pulaar de Windows (choisi par Win + Espace)."""
+    """Vrai si `hkl` est l'un des claviers Pulaar que les versions 2.0 à 2.2
+    inscrivaient dans Windows : c'est lui qui donne ɓ, ɗ, ŋ, ƴ, ñ."""
     if hkl not in _dispositions_connues:
         langue = hkl & 0xFFFF
         appareil = (hkl >> 16) & 0xFFFF
-        _dispositions_connues[hkl] = (langue == LANGUE_PULAAR
-                                      or _fichier_de_disposition(appareil, langue) in NOS_DISPOSITIONS)
+        _dispositions_connues[hkl] = _fichier_de_disposition(appareil, langue) in NOS_DISPOSITIONS
     return _dispositions_connues[hkl]
+
+
+def langue_pulaar(hkl):
+    """Vrai si FUL (Pulaar) est choisi dans Win + Espace, quel que soit son clavier."""
+    return hkl & 0xFFFF == LANGUE_PULAAR
 
 
 def _fichier_de_disposition(appareil, langue):
@@ -1099,12 +1105,14 @@ class FulfuldeEngine:
             self.reset_context()
             return True
 
-        # Toujours actif, comme l'ancien clavier : avec le clavier Pulaar de
-        # Windows, qui donne lui-même ɓ ɗ ŋ ƴ ñ, et avec Français, Anglais…, où
-        # le moteur place ces lettres (réglage « tous les claviers »).
+        # Toujours actif, comme l'ancien clavier : avec Français, Anglais…, le
+        # moteur place lui-même ɓ ɗ ŋ ƴ ñ (réglage « tous les claviers »). Il
+        # agit aussi quand FUL (Pulaar) est choisi dans Win + Espace, et laisse
+        # faire un ancien clavier Pulaar de Windows, qui donne ces lettres.
         layout = _user32.GetKeyboardLayout(_user32.GetWindowThreadProcessId(foreground, None)) or 0
         pulaar = disposition_pulaar(layout)
-        remap = self.parametres["sans_disposition"] and not pulaar and disposition_latine(layout)
+        remap = (not pulaar and (self.parametres["sans_disposition"] or langue_pulaar(layout))
+                 and disposition_latine(layout))
         self.note_disposition(layout, pulaar, remap)
         if not (pulaar or remap):
             if self.current_prefix or self.previous_word or self.current_suggestions:
@@ -1320,10 +1328,11 @@ def run():
     print(f"  Dictionnaire : {len(engine.autocompleter.words)} mots pulaar, "
           f"{len(engine.autocompleter.ngrams)} avec leurs suites")
     if engine.parametres["sans_disposition"]:
-        print("  Le clavier agit avec tous les claviers de Windows ; sans le clavier Pulaar,")
-        print("  il place lui-même v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ.")
+        print("  Le clavier agit avec tous les claviers de Windows : il place lui-même")
+        print("  v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ.")
     else:
-        print("  Le clavier agit quand « Pulaar » est choisi (Win + Espace).")
+        print("  En pause (« Écrire en pulaar avec tous les claviers » désactivé) :")
+        print("  il n'agit que si FUL (Pulaar) est choisi dans Win + Espace.")
     print("  Bulle : Tab prend la suggestion en surbrillance ; ← → en surlignent une autre ; Échap la ferme.")
     print("  Correction automatique à l'espace ; Retour arrière juste après l'annule.")
     print("  Paramètres et Quitter : icône ɓ près de l'horloge.")
@@ -1343,10 +1352,6 @@ def run():
     engine.bubble.root.after(60_000, sauvegarde_reguliere)
     # Tkinter tient le fil principal : Ctrl+C passe par la bulle pour s'arrêter.
     signal.signal(signal.SIGINT, lambda *_: engine.bubble.arrete())
-    if not engine.parametres["sans_disposition"] and not pc.pulaar_dans_la_liste_des_langues():
-        # Sans le clavier Pulaar dans Win + Espace, rien n'apparaîtrait : les
-        # paramètres s'ouvrent et expliquent quoi faire.
-        engine.open_settings()
     try:
         engine.bubble.lance()
     finally:

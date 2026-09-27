@@ -9,7 +9,7 @@ param([switch]$MachineOnly)
 
 $ErrorActionPreference = 'Stop'
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
-# 00000867 : l'AZERTY, disposition principale de la langue peule ; a0010867 :
+# 00000867 : l'AZERTY, disposition principale de la langue pulaar (ff-Latn-SN) ; a0010867 :
 # le QWERTY ; a0000867 : l'ancienne inscription de l'AZERTY.
 $klids = @('00000867', 'a0010867', 'a0000867')
 $nosDll = @('fulffaz.dll', 'fulffqw.dll', 'kbdfulfa.dll', 'kbdfulfq.dll')

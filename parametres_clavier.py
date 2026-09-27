@@ -30,7 +30,6 @@ ICONE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icones", "clav
 
 CLE_DEMARRAGE = r"Software\Microsoft\Windows\CurrentVersion\Run"
 NOM_DEMARRAGE = "ClavierPulaar"
-CLE_LANGUES = r"Control Panel\International\User Profile"
 
 PAR_DEFAUT = {
     "suggestions": True,             # la bulle au-dessus du curseur
@@ -136,25 +135,6 @@ def regle_demarrage(actif):
                 winreg.DeleteValue(cle, NOM_DEMARRAGE)
             except FileNotFoundError:
                 pass
-
-
-def pulaar_dans_la_liste_des_langues():
-    """Vrai si une langue peule figure dans la liste de Windows (Win + Espace)."""
-    if winreg is None:
-        return False
-    try:
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, CLE_LANGUES) as cle:
-            i = 0
-            while True:
-                try:
-                    langue = winreg.EnumKey(cle, i)
-                except OSError:
-                    return False
-                if langue.lower().startswith("ff"):
-                    return True
-                i += 1
-    except OSError:
-        return False
 
 
 def _theme_sombre():
@@ -287,22 +267,14 @@ class FenetreParametres:
         tk.Label(corps, text="Clavier Pulaar (Fulfulde) — seulement des mots pulaar",
                  font=self.police_detail, bg=c["fond"], fg=c["detail"], anchor="w").pack(fill="x", pady=(0, 14))
 
-        if not pulaar_dans_la_liste_des_langues() and not moteur.parametres["sans_disposition"]:
-            tk.Label(corps, font=self.police_detail, bg=c["fond"], fg=c["alerte"], anchor="w",
-                     justify="left", wraplength=self.largeur_texte + round(120 * facteur),
-                     text="Le clavier Pulaar n'est pas dans la liste Win + Espace, et le clavier "
-                          "n'agit qu'avec lui : rien n'apparaîtra. Activez « Écrire en pulaar avec "
-                          "tous les claviers », ou lancez INSTALLER_LE_CLAVIER.bat."
-                     ).pack(fill="x", pady=(0, 12))
-
         self.interrupteurs = {}
         tk.Label(corps, text="Clavier", font=police_section, bg=c["fond"],
                  fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
         self._carte(corps, "sans_disposition",
                     "Écrire en pulaar avec tous les claviers",
-                    "Toujours actif, comme l'ancien clavier : avec Français ou Anglais aussi, "
+                    "Toujours actif, comme l'ancien clavier : avec Français comme avec Anglais, "
                     "v → ɓ, z → ɗ, q → ŋ, x → ƴ, ^ ou [ → ñ, et les suggestions. AltGr + v redonne v. "
-                    "Désactivé : seulement quand « Pulaar » est choisi (Win + Espace).")
+                    "Désactivez-le pour écrire en français.")
 
         tk.Label(corps, text="Suggestions et corrections", font=police_section, bg=c["fond"],
                  fg=c["texte"], anchor="w").pack(fill="x", pady=(14, 6))

@@ -1,6 +1,6 @@
 # Clavier Pulaar (Fulfulde) pour Windows
 
-> Un clavier pulaar qui se comporte comme ceux de Microsoft : il propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Toujours actif, comme l'ancien clavier : avec le clavier **Pulaar** de Win + Espace, mais aussi avec Français ou Anglais, où il place lui-même les lettres pulaar. Uniquement des mots pulaar.
+> Un clavier pulaar qui se comporte comme ceux de Microsoft : il propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Toujours actif, comme l'ancien clavier : avec votre clavier habituel (Français, Anglais…), il place lui-même les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ). Uniquement des mots pulaar.
 
 ---
 
@@ -13,15 +13,15 @@
 ## 🚀 Installation (une fois)
 
 1. Lancez **`Setup_Clavier_Pulaar.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Clavier Pulaar`.
-2. Appuyez sur **Win + Espace** : la langue peule apparaît avec **Pulaar (Fulfulde) AZERTY** et **Pulaar (Fulfulde) QWERTY**, à côté de Français et Anglais.
-3. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
+2. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
+3. Écrivez avec votre clavier habituel : rien à choisir dans Win + Espace.
 
 Pour tout retirer : **Paramètres > Applications > Clavier Pulaar (Fulfulde) > Désinstaller**.
 
 L'assistant lance `installer_clavier_pulaar.ps1`, qui :
-- il enregistre `fulffaz.dll` comme **disposition principale de la langue peule** (`00000867`), comme Microsoft le fait pour ses langues, et `fulffqw.dll` en variante, avec un *Layout Id* libre (l'ancien `00a1` était déjà celui du clavier lituanien). Windows ne livre aucun clavier `00000867` : inscrit seulement en variante, le premier clavier Pulaar renvoyait à une disposition absente, et le sélecteur Win + Espace faisait planter l'Explorateur ;
-- il rend à Windows sa disposition Wolof, que les anciens installateurs avaient remplacée ;
-- il ajoute la langue peule à Win + Espace, enregistre le correcteur orthographique et fait démarrer le clavier avec Windows.
+- enregistre le correcteur orthographique pulaar et fait démarrer le clavier avec Windows ;
+- retire les claviers « Pulaar (Fulfulde) AZERTY / QWERTY » que les versions 2.0 à 2.2 inscrivaient dans Windows, d'abord de la liste Win + Espace, puis de Windows. Le sélecteur Win + Espace de Windows 11 (`InputSwitch.dll`) plantait sur eux et emportait l'Explorateur ; le moteur n'en a plus besoin ;
+- rend à Windows sa disposition Wolof, que les anciens installateurs avaient remplacée.
 
 > `Setup_Clavier_Fulfulde.exe` est l'**ancien** installateur : ne l'utilisez plus. Il remplaçait la disposition Wolof de Windows et réutilisait un *Layout Id* déjà pris, ce qui faisait planter Win + Espace.
 
@@ -55,7 +55,7 @@ Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la m�
 
 ## ✍️ Utilisation, comme sous Windows 11
 
-Écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp, Telegram…), avec le clavier **Pulaar** de Win + Espace ou directement avec Français ou Anglais : le moteur place alors lui-même les lettres pulaar (voir « Les touches » plus bas).
+Écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp, Telegram…) avec votre clavier habituel, Français ou Anglais : le moteur place lui-même les lettres pulaar (voir « Les touches » plus bas).
 
 - **Suggestions de texte** : une bulle apparaît au-dessus du curseur. Elle propose le mot en cours, puis, après une espace, le mot suivant. Quand deux mots vont presque toujours ensemble, elle les propose d'un bloc (*hol ko*, *hay so*, *no feewi*).
   - **Sans la souris** : **← →** surlignent une suggestion, **Tab** ou **Entrée** la prennent. La première est surlignée d'office : **Tab** seul la prend, au milieu d'un mot comme après une espace. Un **clic** ou **Alt + 1, 2, 3** marchent aussi.
@@ -67,8 +67,7 @@ Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la m�
 ### Soulignement des fautes (correcteur de Windows)
 
 L'installateur enregistre aussi un **correcteur orthographique pulaar** auprès de Windows (`correcteur_pulaar\correcteur_pulaar.dll`). Les applications qui se servent du correcteur de Windows soulignent alors en rouge les mots pulaar mal écrits, et le clic droit propose la correction (`fulbe` → `fulɓe`, `jaraama` → `jaaraama`, `miido` → `miɗo`).
-- **Microsoft Edge** et **Google Chrome** : ajoutez « Peul » dans **Paramètres > Langues**, puis activez la vérification orthographique pour cette langue.
-- Les autres applications le font lorsqu'elles vérifient l'orthographe dans la langue du clavier choisi.
+- **Microsoft Edge** et **Google Chrome** : ajoutez la langue Fulfulde (Pulaar, code `ff`) dans **Paramètres > Langues**, puis activez la vérification orthographique pour cette langue.
 - Word et LibreOffice ont leur propre correcteur et ne l'utilisent pas.
 
 Pour recompiler la DLL (chaîne Rust GNU, sans Visual Studio) :
@@ -84,7 +83,7 @@ La seconde commande vérifie le correcteur en passant par le service de Windows,
 ### Paramètres
 
 Cliquez sur l'icône **ɓ** près de l'horloge. Une fenêtre semblable à la page « Saisie » de Windows s'ouvre, avec des interrupteurs pour :
-- écrire en pulaar avec tous les claviers (activé d'office) : désactivé, le clavier n'agit que lorsque « Pulaar » est choisi dans Win + Espace, et Français ou Anglais restent intacts ;
+- écrire en pulaar avec tous les claviers (activé d'office) : désactivé, le clavier se met en pause et Français ou Anglais restent intacts, pour écrire en français ;
 - les suggestions de texte, et leur choix avec les flèches ;
 - la correction automatique ;
 - les mots retenus ;
@@ -101,46 +100,26 @@ Pour relancer le moteur à la main : **`LANCER_CLAVIER.bat`** (sans fenêtre noi
 
 ## ⌨️ Les touches
 
-Les deux claviers placent les lettres pulaar sur les mêmes lettres : **v → ɓ**, **z → ɗ**, **q → ŋ**, **x → ƴ**, et **ñ** sur la touche à droite de P. AltGr redonne la lettre latine (v, z, q, x).
+Avec votre clavier habituel, AZERTY (Français) comme QWERTY (Anglais), le moteur place les lettres pulaar :
 
-### Pulaar (Fulfulde) AZERTY
 | Touche | Seule | Maj | AltGr |
 |---|---|---|---|
 | `v` | **ɓ** | **Ɓ** | v |
 | `z` | **ɗ** | **Ɗ** | z |
 | `q` | **ŋ** | **Ŋ** | q |
 | `x` | **ƴ** | **Ƴ** | x |
-| `^` (à droite de P) | **ñ** | **Ñ** | ^ |
-| `²` | ² | **’** (hamza) | |
-| `b`, `d`, `n` | b, d, n | | **ɓ**, **ɗ**, **ŋ** |
-| `a`, `u`, `i`, `o` | | | **á**, **ú**, **í**, **ó** |
-
-### Pulaar (Fulfulde) QWERTY
-| Touche | Seule | Maj | AltGr |
-|---|---|---|---|
-| `v` | **ɓ** | **Ɓ** | v |
-| `z` | **ɗ** | **Ɗ** | z |
-| `q` | **ŋ** | **Ŋ** | q |
-| `x` | **ƴ** | **Ƴ** | x |
-| `[` (à droite de P) | **ñ** | **Ñ** | [ (Maj + AltGr : {) |
-| `'` | **’** (hamza) | " | ' |
+| à droite de P (`^` ou `[`) | **ñ** | **Ñ** | ^ ou [ |
+| `²` (AZERTY) ou `'` (QWERTY) | **’** (hamza) | | |
 | `b`, `d`, `n`, `y` | | | **ɓ**, **ɗ**, **ŋ**, **ƴ** |
 | `a`, `e`, `u`, `i`, `o` | | | **á**, **é**, **ú**, **í**, **ó** |
 
-### Avec Français, Anglais… (sans le clavier Pulaar de Windows)
+AltGr ne remplace que ce que Windows laisse vide : AltGr + E reste € en français. Ctrl et Alt gardent leurs raccourcis (Ctrl + V colle, Alt + F ouvre le menu).
 
-Le moteur place lui-même les mêmes lettres, sur un clavier AZERTY comme QWERTY :
-- **v → ɓ**, **z → ɗ**, **q → ŋ**, **x → ƴ** (Maj : Ɓ Ɗ Ŋ Ƴ) ;
-- la touche à droite de P (`^` ou `[`) → **ñ** ;
-- `²` (AZERTY) ou `'` (QWERTY) → **’** (hamza) ;
-- **AltGr** redonne ce que la touche porte d'ordinaire (AltGr + v → v, AltGr + ^ → ^), et donne **ɓ ɗ ŋ ƴ** sur b, d, n, y et **á é í ó ú** sur les voyelles, là où Windows n'y met rien (AltGr + E reste €) ;
-- Ctrl et Alt gardent leurs raccourcis (Ctrl + V colle, Alt + F ouvre le menu).
-
-Pour écrire en français : désactivez « Écrire en pulaar avec tous les claviers » (clic droit sur l'icône **ɓ**).
+Pour écrire en français : clic droit sur l'icône **ɓ**, puis décochez « Écrire en pulaar avec tous les claviers ». Si FUL (Pulaar) figure dans votre liste Win + Espace avec un clavier de Windows, le moteur agit aussi quand vous le choisissez, même en pause.
 
 **Ctrl + Shift + A** active ou désactive les suggestions.
 
-Pour changer une touche : modifiez `generate_klc.py`, puis lancez `installateur\compiler_dispositions.ps1`. Il régénère `fulffaz.klc` et `fulffqw.klc`, puis compile les DLL (`*_amd64.dll` pour System32, `*_wow64.dll` pour SysWOW64) avec `kbdutool` de Microsoft Keyboard Layout Creator.
+`generate_klc.py` et `installateur\compiler_dispositions.ps1` fabriquent encore les dispositions Windows `fulffaz.dll` et `fulffqw.dll` (Microsoft Keyboard Layout Creator), mais l'installateur ne les inscrit plus dans Windows : le sélecteur Win + Espace plantait sur elles.
 
 ---
 
@@ -157,7 +136,7 @@ Le script lit :
 
 Il écarte :
 - les formes de `listes_mots\2_mots_rejetes.txt` ;
-- ce qui n'est pas du pulaar : lettres absentes de l'alphabet (q, v, x, z, voyelles accentuées), mots plus fréquents en français ou en anglais, syllabes impossibles en pulaar (swahili, bambara, noms étrangers, peul écrit « ny » au lieu de « ñ »).
+- ce qui n'est pas du pulaar : lettres absentes de l'alphabet (q, v, x, z, voyelles accentuées), mots plus fréquents en français ou en anglais, syllabes impossibles en pulaar (swahili, bambara, noms étrangers, pulaar écrit « ny » au lieu de « ñ »).
 
 Il applique `listes_mots\3_lectures_corrigees.txt` (`mido` → `miɗo`), puis écrit `dictionary\dict_ff_latin.json` : environ 118 000 mots, 64 000 mots avec leurs suites et 1 700 groupes de deux mots. Il remplace `importer_donnees_tappirgal.py`.
 
@@ -189,7 +168,7 @@ Le dictionnaire (`dictionary\dict_ff_latin.json`) est tiré de deux sources :
   - *Saggitorde* de Ceerno Abuu Sih ;
   - ARPRIM `pulaar_fulfulde` et `Pulaar_Dictionary` (HuggingFace, **CC-BY-4.0**) ;
   - pulaar.org et goomufulo.com ;
-- **le corpus Tappirgal** : livres pulaar numérisés, Wikipédia en peul, pulaar.org, RFI Fulfulde. Seuls des comptes de mots et de suites de mots en sont tirés, jamais de texte.
+- **le corpus Tappirgal** : livres pulaar numérisés, Wikipédia en fulfulde, pulaar.org, RFI Fulfulde. Seuls des comptes de mots et de suites de mots en sont tirés, jamais de texte.
 
 ---
 

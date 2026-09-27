@@ -1,22 +1,25 @@
 ﻿# ============================================================
-#  Installe le Clavier Pulaar dans Windows, comme un clavier de Microsoft
+#  Installe le Clavier Pulaar (Fulfulde)
 # ============================================================
-#  1. (administrateur) copie fulffaz.dll et fulffqw.dll dans Windows et les
-#     enregistre avec des Layout Id libres (00a1 etait deja pris par le
-#     clavier lituanien) ; rend a Windows sa disposition Wolof (00000488),
-#     que les anciens installateurs avaient remplacee ; inscrit le clavier
-#     dans « Applications installees » ;
-#  2. (utilisateur) ajoute la langue Peul (ff-Latn-SN) avec les claviers
-#     Pulaar AZERTY et QWERTY a la liste Win + Espace ;
-#  3. (utilisateur) enregistre le correcteur orthographique pulaar aupres de
-#     Windows : Edge, Chrome, le Bloc-notes soulignent les fautes ;
-#  4. (utilisateur) lance le moteur de suggestions et le fait demarrer avec
-#     Windows (sauf avec -SansMoteur).
+#  Le moteur place lui-meme les lettres pulaar (v -> ɓ, z -> ɗ, q -> ŋ...)
+#  avec n'importe quel clavier de Windows : il n'inscrit plus de disposition
+#  dans Windows. Les claviers « Pulaar (Fulfulde) AZERTY / QWERTY » des
+#  versions 2.0 a 2.2 faisaient planter le selecteur Win + Espace
+#  (InputSwitch.dll, dans l'Explorateur) : ils sont retires.
 #
-#  Installe par Setup_Clavier_Pulaar.exe, le script est a cote de
-#  ClavierPulaar.exe : le moteur est cet exe, et l'entree des applications
-#  installees est celle du Setup. -MachineOnly et -UtilisateurSeulement font
-#  l'une ou l'autre partie (le Setup appelle les deux).
+#  1. (utilisateur) retire ces claviers de la liste Win + Espace, et la langue
+#     FUL (Pulaar) s'ils y etaient seuls ; enregistre le correcteur orthographique
+#     pulaar ; lance le moteur et le fait demarrer avec Windows (sauf avec
+#     -SansMoteur) ;
+#  2. (administrateur) efface les dispositions et leurs fichiers ; rend a
+#     Windows sa disposition Wolof, que les anciens installateurs avaient
+#     remplacee ; retire l'ancien Setup.
+#
+#  La partie utilisateur passe d'abord : une langue qui renverrait a une
+#  disposition deja effacee ferait planter Win + Espace. Installe par
+#  Setup_Clavier_Pulaar.exe, le script est a cote de ClavierPulaar.exe ;
+#  -UtilisateurSeulement et -MachineOnly font l'une ou l'autre partie (le
+#  Setup appelle les deux, dans cet ordre).
 param(
     [switch]$MachineOnly,
     [switch]$UtilisateurSeulement,
@@ -28,16 +31,9 @@ $ici = Split-Path -Parent $PSCommandPath
 $exe = Join-Path $ici 'ClavierPulaar.exe'
 $empaquete = Test-Path $exe
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
-# L'AZERTY est la disposition principale de la langue peule (00000867), comme
-# les claviers de Microsoft pour leurs langues. Windows n'en livre aucune pour
-# 0867 : inscrit seulement en variante (a0000867), le premier clavier de la
-# langue renvoyait a une disposition 00000867 absente, et le selecteur
-# Win + Espace (InputSwitch) faisait planter l'Explorateur en y passant.
-$dispositions = @(
-    @{ Klid = '00000867'; Dll = 'fulffaz.dll'; Texte = 'Pulaar (Fulfulde) AZERTY' },
-    @{ Klid = 'a0010867'; Dll = 'fulffqw.dll'; Texte = 'Pulaar (Fulfulde) QWERTY' }
-)
-$anciennesDispositions = @('a0000867')
+# 00000867 : l'AZERTY (disposition principale de la langue pulaar, ff-Latn-SN) ; a0010867 :
+# le QWERTY ; a0000867 : l'ancienne inscription de l'AZERTY.
+$klids = @('00000867', 'a0010867', 'a0000867')
 $nosDll = @('fulffaz.dll', 'fulffqw.dll', 'kbdfulfa.dll', 'kbdfulfq.dll')
 $cleDesinstallation = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ClavierPulaar'
 $ancienSetup = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{9F3B96A1-7F2D-4D3C-8A3E-91B2D3E4F5A6}_is1'
@@ -47,79 +43,97 @@ function Test-Administrateur {
         [Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-function Copy-SiDifferent($source, $destination) {
-    if (-not (Test-Path $source)) { throw "Fichier manquant : $source" }
-    if ((Test-Path $destination) -and
-        (Get-FileHash $source).Hash -eq (Get-FileHash $destination).Hash) { return }
-    try {
-        Copy-Item $source $destination -Force
-    } catch [System.IO.IOException] {
-        # Une disposition en service est tenue ouverte par Windows : elle ne
-        # s'ecrase pas, mais se renomme. La nouvelle sert apres une reconnexion.
-        Move-Item $destination "$destination.$(Get-Date -Format yyyyMMddHHmmss).ancienne" -Force
-        Copy-Item $source $destination -Force
-        Write-Host "      $(Split-Path $destination -Leaf) remplace : reconnectez-vous pour l'utiliser." -ForegroundColor Yellow
+function Remove-ClaviersDeLaListe {
+    Write-Host '[1/3] Anciens claviers Pulaar retires de Win + Espace...' -ForegroundColor Yellow
+    $liste = Get-WinUserLanguageList
+    $change = $false
+    foreach ($langue in @($liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' })) {
+        foreach ($tip in @($langue.InputMethodTips | Where-Object { $klids -contains ($_ -split ':')[-1].ToLower() })) {
+            [void]$langue.InputMethodTips.Remove($tip)
+            $change = $true
+        }
+        if ($langue.InputMethodTips.Count -eq 0) {
+            [void]$liste.Remove($langue)
+            $change = $true
+        }
     }
+    if ($change) {
+        Set-WinUserLanguageList $liste -Force
+        Write-Host '      Claviers retires.' -ForegroundColor Green
+    }
+
+    # Get-WinUserLanguageList rend la liste d'un bloc : foreach la parcourt langue par langue.
+    $ful = foreach ($langue in (Get-WinUserLanguageList)) {
+        if (@($langue.InputMethodTips | Where-Object { $_ -like '0867:*' }).Count) { $langue }
+    }
+    if ($ful) { return }
+    # Plus aucun clavier FUL (Pulaar) : ceux encore charges dans la session, et la trace
+    # qu'en garde l'ordre de Win + Espace, partent aussi.
+    Add-Type -Namespace ClavierPulaar -Name Dispositions -MemberDefinition @'
+[DllImport("user32.dll")] public static extern int GetKeyboardLayoutList(int n, IntPtr[] liste);
+[DllImport("user32.dll")] public static extern bool UnloadKeyboardLayout(IntPtr hkl);
+'@
+    $n = [ClavierPulaar.Dispositions]::GetKeyboardLayoutList(0, $null)
+    $hkls = New-Object IntPtr[] $n
+    [void][ClavierPulaar.Dispositions]::GetKeyboardLayoutList($n, $hkls)
+    foreach ($hkl in $hkls) {
+        if (($hkl.ToInt64() -band 0xFFFF) -eq 0x0867) { [void][ClavierPulaar.Dispositions]::UnloadKeyboardLayout($hkl) }
+    }
+    Remove-Item 'HKCU:\Software\Microsoft\CTF\SortOrder\AssemblyItem\0x00000867' -Recurse -Force -ErrorAction SilentlyContinue
+}
+
+function Install-Utilisateur {
+    Remove-ClaviersDeLaListe
+
+    Write-Host '[2/3] Correcteur orthographique pulaar (Edge, Chrome...)...' -ForegroundColor Yellow
+    try {
+        & (Join-Path $ici 'correcteur_pulaar\enregistrer_correcteur.ps1')
+    } catch {
+        Write-Host "      Correcteur non enregistre : $_" -ForegroundColor Red
+    }
+
+    if ($SansMoteur) { return }
+    Write-Host '[3/3] Moteur (lettres pulaar et suggestions)...' -ForegroundColor Yellow
+    $demarrage = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+    if ($empaquete) {
+        Set-ItemProperty $demarrage -Name 'ClavierPulaar' -Value "`"$exe`""
+        Start-Process $exe
+        Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
+        return
+    }
+    $pythonw = (Get-Command pythonw.exe -ErrorAction SilentlyContinue).Source
+    if (-not $pythonw) {
+        Write-Host '      Python est introuvable : installez-le depuis python.org, puis relancez.' -ForegroundColor Red
+        return
+    }
+    $python = Join-Path (Split-Path $pythonw) 'python.exe'
+    & $python -c 'import pynput' 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '      Installation de pynput...' -ForegroundColor Yellow
+        & $python -m pip install --user pynput
+    }
+    $script = Join-Path $ici 'clavier_fulfulde_natif.py'
+    Set-ItemProperty $demarrage -Name 'ClavierPulaar' -Value "`"$pythonw`" `"$script`""
+    Start-Process $pythonw -ArgumentList "`"$script`""
+    Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
 }
 
 function Install-Machine {
-    Write-Host '[1/4] Dispositions Pulaar dans Windows...' -ForegroundColor Yellow
-    if (-not [Environment]::Is64BitOperatingSystem) { throw 'Le Clavier Pulaar demande Windows 64 bits.' }
-
-    # Les fichiers, comme les installe Microsoft : la version 64 bits dans
-    # System32, la version WOW64 (applications 32 bits) dans SysWOW64. Les
-    # versions remplacees lors d'une mise a jour precedente partent ici.
-    foreach ($dossier in "$env:SystemRoot\System32", "$env:SystemRoot\SysWOW64") {
-        Remove-Item "$dossier\fulff*.dll.*.ancienne" -Force -ErrorAction SilentlyContinue
-    }
-    foreach ($d in $dispositions) {
-        $nom = [IO.Path]::GetFileNameWithoutExtension($d.Dll)
-        Copy-SiDifferent "$ici\${nom}_amd64.dll" "$env:SystemRoot\System32\$($d.Dll)"
-        Copy-SiDifferent "$ici\${nom}_wow64.dll" "$env:SystemRoot\SysWOW64\$($d.Dll)"
-    }
-
-    # Une disposition principale (0000xxxx) n'a pas de Layout Id. Une variante
-    # (a00xxxxx) en a un, que personne d'autre n'utilise : deux dispositions au
-    # meme Layout Id, et Windows peut charger la mauvaise.
-    $pris = @{}
-    foreach ($cle in Get-ChildItem $base) {
-        $id = (Get-ItemProperty $cle.PSPath).'Layout Id'
-        $notre = ($dispositions.Klid + $anciennesDispositions) -contains $cle.PSChildName
-        if ($id -and -not $notre) { $pris[$id.ToLower()] = $cle.PSChildName }
-    }
-    $prochain = 0x00f0
-    foreach ($d in $dispositions) {
-        $cle = Join-Path $base $d.Klid
-        $fichier = (Get-ItemProperty $cle -ErrorAction SilentlyContinue).'Layout File'
-        if ($fichier -and ($nosDll -notcontains $fichier.ToLower())) {
-            throw "La disposition $($d.Klid) existe deja ($fichier) : elle n'est pas remplacee."
-        }
-        if (-not (Test-Path $cle)) { New-Item -Path $cle -Force | Out-Null }
-        Set-ItemProperty $cle -Name 'Layout File' -Value $d.Dll
-        Set-ItemProperty $cle -Name 'Layout Text' -Value $d.Texte
-        Set-ItemProperty $cle -Name 'Layout Display Name' -Value $d.Texte
-        if ($d.Klid.StartsWith('0000')) {
-            Remove-ItemProperty $cle -Name 'Layout Id' -ErrorAction SilentlyContinue
-            Write-Host "      $($d.Texte) : $($d.Klid) (disposition principale)" -ForegroundColor Green
-            continue
-        }
-        $id = (Get-ItemProperty $cle).'Layout Id'
-        if (-not $id -or $pris.ContainsKey($id.ToLower())) {
-            while ($pris.ContainsKey(('{0:x4}' -f $prochain))) { $prochain++ }
-            $id = '{0:x4}' -f $prochain
-        }
-        $pris[$id.ToLower()] = $d.Klid
-        Set-ItemProperty $cle -Name 'Layout Id' -Value $id
-        Write-Host "      $($d.Texte) : $($d.Klid), Layout Id $id" -ForegroundColor Green
-    }
-
-    # L'ancienne inscription de l'AZERTY en variante (a0000867)
-    foreach ($klid in $anciennesDispositions) {
+    Write-Host '[Administrateur] Anciennes dispositions Pulaar effacees...' -ForegroundColor Yellow
+    foreach ($klid in $klids) {
         $cle = Join-Path $base $klid
         $fichier = (Get-ItemProperty $cle -ErrorAction SilentlyContinue).'Layout File'
+        # Seulement nos dispositions, jamais une disposition de Windows.
         if ($fichier -and ($nosDll -contains $fichier.ToLower())) {
             Remove-Item $cle -Recurse -Force
-            Write-Host "      Ancienne inscription $klid retiree." -ForegroundColor Green
+            Write-Host "      $klid retiree." -ForegroundColor Green
+        }
+    }
+    # Un fichier encore ouvert reste en place : il ne sert plus a rien une fois
+    # les cles retirees, et partira a la prochaine installation.
+    foreach ($dossier in "$env:SystemRoot\System32", "$env:SystemRoot\SysWOW64") {
+        foreach ($motif in 'fulffaz.dll', 'fulffqw.dll', 'fulff*.dll.*.ancienne') {
+            Remove-Item (Join-Path $dossier $motif) -Force -ErrorAction SilentlyContinue
         }
     }
 
@@ -153,68 +167,13 @@ function Install-Machine {
     if (-not (Test-Path $cleDesinstallation)) { New-Item -Path $cleDesinstallation -Force | Out-Null }
     $desinstaller = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$ici\desinstaller_clavier_pulaar.ps1`""
     Set-ItemProperty $cleDesinstallation -Name 'DisplayName' -Value 'Clavier Pulaar (Fulfulde)'
-    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.0'
+    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.3'
     Set-ItemProperty $cleDesinstallation -Name 'Publisher' -Value 'Fulfulde Community'
     Set-ItemProperty $cleDesinstallation -Name 'DisplayIcon' -Value "$ici\icones\clavier_pulaar.ico"
     Set-ItemProperty $cleDesinstallation -Name 'InstallLocation' -Value $ici
     Set-ItemProperty $cleDesinstallation -Name 'UninstallString' -Value $desinstaller
     Set-ItemProperty $cleDesinstallation -Name 'NoModify' -Value 1 -Type DWord
     Set-ItemProperty $cleDesinstallation -Name 'NoRepair' -Value 1 -Type DWord
-}
-
-function Install-Utilisateur {
-    Write-Host '[2/4] Pulaar dans la liste Win + Espace...' -ForegroundColor Yellow
-    $liste = Get-WinUserLanguageList
-    $pulaar = $liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' } | Select-Object -First 1
-    if (-not $pulaar) {
-        $liste.Add('ff-Latn-SN')
-        $pulaar = $liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' } | Select-Object -First 1
-    }
-    # La langue arrive avec le clavier Wolof par defaut : on met les notres a la place.
-    $pulaar.InputMethodTips.Clear()
-    foreach ($d in $dispositions) { $pulaar.InputMethodTips.Add("0867:$($d.Klid.ToUpper())") }
-    Set-WinUserLanguageList $liste -Force
-
-    # Get-WinUserLanguageList rend la liste d'un bloc : foreach la parcourt langue par langue.
-    $verifie = foreach ($langue in (Get-WinUserLanguageList)) { if ($langue.LanguageTag -like 'ff-Latn*') { $langue } }
-    if ($verifie -and $verifie.InputMethodTips.Count -gt 0) {
-        Write-Host "      $($verifie.LocalizedName) : $($verifie.InputMethodTips -join ', ')" -ForegroundColor Green
-    } else {
-        Write-Host '      Windows n a pas garde la langue Peul : ouvrez Parametres > Heure et langue.' -ForegroundColor Red
-    }
-
-    Write-Host '[3/4] Correcteur orthographique pulaar (Edge, Chrome, Bloc-notes...)...' -ForegroundColor Yellow
-    try {
-        & (Join-Path $ici 'correcteur_pulaar\enregistrer_correcteur.ps1')
-    } catch {
-        Write-Host "      Correcteur non enregistre : $_" -ForegroundColor Red
-    }
-
-    if ($SansMoteur) { return }
-    Write-Host '[4/4] Moteur de suggestions...' -ForegroundColor Yellow
-    $demarrage = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
-    if ($empaquete) {
-        Set-ItemProperty $demarrage -Name 'ClavierPulaar' -Value "`"$exe`""
-        Start-Process $exe
-        Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
-        return
-    }
-    $pythonw = (Get-Command pythonw.exe -ErrorAction SilentlyContinue).Source
-    if (-not $pythonw) {
-        Write-Host '      Python est introuvable : installez-le depuis python.org, puis relancez.' -ForegroundColor Red
-        return
-    }
-    $python = Join-Path (Split-Path $pythonw) 'python.exe'
-    & $python -c 'import pynput' 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host '      Installation de pynput...' -ForegroundColor Yellow
-        & $python -m pip install --user pynput
-    }
-    $script = Join-Path $ici 'clavier_fulfulde_natif.py'
-    Set-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 'ClavierPulaar' `
-        -Value "`"$pythonw`" `"$script`""
-    Start-Process $pythonw -ArgumentList "`"$script`""
-    Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
 }
 
 if ($MachineOnly) {
@@ -230,15 +189,15 @@ if ($UtilisateurSeulement) {
 Write-Host '============================================================' -ForegroundColor Cyan
 Write-Host '   INSTALLATION DU CLAVIER PULAAR (FULFULDE)' -ForegroundColor Green
 Write-Host '============================================================' -ForegroundColor Cyan
+Install-Utilisateur
 if (Test-Administrateur) {
     Install-Machine
 } else {
     # La partie machine demande les droits d'administrateur ; la liste des
-    # langues, elle, doit etre changee dans la session de l'utilisateur.
+    # langues, elle, se change dans la session de l'utilisateur (fait plus haut).
     $p = Start-Process powershell.exe -Verb RunAs -Wait -PassThru -ArgumentList @(
         '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$PSCommandPath`"", '-MachineOnly')
     if ($p.ExitCode -ne 0) { throw 'La partie administrateur a echoue.' }
 }
-Install-Utilisateur
 Write-Host ''
-Write-Host 'Termine. Appuyez sur Win + Espace et choisissez « Pulaar (Fulfulde) AZERTY ».' -ForegroundColor Cyan
+Write-Host 'Termine. Ecrivez avec votre clavier habituel : v donne ɓ, z ɗ, q ŋ, x ƴ.' -ForegroundColor Cyan

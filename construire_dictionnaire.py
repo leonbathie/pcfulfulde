@@ -70,7 +70,7 @@ DIGRAMMES_ETRANGERS = re.compile(r"th|sh|ph|ck|gh|ch")
 # prenasale (mb, nd, ng, nj), et trois consonnes ne se suivent que devant une
 # prenasale (janngo, ñaamnde). Le reste vient du swahili (mwenye, kwa), du
 # bambara (npalanninw), du francais ou de l'anglais (londres, awards), ou du
-# peul ecrit sans ñ (nyiiri).
+# pulaar ecrit sans ñ (nyiiri).
 PRENASALES = ("mb", "nd", "ng", "nj")
 GRAPPE_DE_CONSONNES = re.compile(r"[^aeiou\-]+")
 LETTRE_TRIPLEE = re.compile(r"(.)\1\1")

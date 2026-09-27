@@ -39,7 +39,7 @@ pub const CLSID_CORRECTEUR_PULAAR: GUID = GUID::from_u128(0xba4f4fd0_8bb2_49e2_9
 
 const IDENTIFIANT: &str = "ClavierPulaar";
 const NOM: &str = "Correcteur pulaar (Clavier Pulaar)";
-/// Langues annoncées à Windows : le pulaar du Sénégal, et le peul en général.
+/// Langues annoncées à Windows : le pulaar du Sénégal, et le fulfulde en général.
 const LANGUES: [&str; 4] = ["ff-Latn-SN", "ff-SN", "ff-Latn", "ff"];
 /// Lettres des clés normalisées : ɓ, ɗ, ŋ, ñ, ƴ y sont déjà rabattues.
 const ALPHABET: &str = "abcdefghijklmnoprstuwy";
