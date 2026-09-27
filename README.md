@@ -1,18 +1,18 @@
 # Fulfulde Keyboard pour Windows
 
-> **Fulfulde Keyboard**, un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace** (FUL), donne les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ), propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Avec Français ou Anglais, rien ne change. Uniquement des mots pulaar.
+> **Fulfulde Keyboard** (éditeur : Tarolearning), un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace** (FUL), donne les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ), propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Avec Français ou Anglais, rien ne change. Uniquement des mots pulaar.
 
 ---
 
 ## Download
 
-*Télécharger.* Les versions sont publiées dans **[Releases](https://github.com/leonbathie/pcfulfulde/releases)** : téléchargez `Setup_Fulfulde_Keyboard.exe`. Les installateurs signés le sont par SignPath Foundation : free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/) (voir [Code signing policy](#code-signing-policy)).
+*Télécharger.* Les versions sont publiées dans **[Releases](https://github.com/leonbathie/pcfulfulde/releases)** : téléchargez `Fulfulde_Keyboard.exe`. Les installateurs signés le sont par SignPath Foundation : free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/) (voir [Code signing policy](#code-signing-policy)).
 
 ---
 
 ## 🚀 Installation (une fois)
 
-1. Lancez **`Setup_Fulfulde_Keyboard.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Fulfulde Keyboard`. Une version précédente (« Clavier Pulaar ») est remplacée, avec ses réglages et vos mots retenus.
+1. Lancez **`Fulfulde_Keyboard.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Fulfulde Keyboard`. Une version précédente (« Clavier Pulaar ») est remplacée, avec ses réglages et vos mots retenus.
 2. Appuyez sur **Win + Espace** : **FUL** apparaît à côté de FRA et ENG, deux fois, avec le clavier Français (AZERTY) et avec le clavier Anglais (QWERTY) de Windows. Choisissez celui qui correspond à votre clavier.
 3. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
 
@@ -31,7 +31,7 @@ L'assistant lance `installer_clavier_pulaar.ps1`, en trois parties :
 powershell -ExecutionPolicy Bypass -File installateur\fabriquer_installateur.ps1
 ```
 
-Le script transforme le clavier en `FulfuldeKeyboard.exe` avec PyInstaller, puis produit `Setup_Fulfulde_Keyboard.exe` avec Inno Setup 6 (`installateur\clavier_pulaar.iss`). Il faut Python avec `pynput` et `pyinstaller`, et Inno Setup 6.
+Le script transforme le clavier en `FulfuldeKeyboard.exe` avec PyInstaller, puis produit `Fulfulde_Keyboard.exe` avec Inno Setup 6 (`installateur\clavier_pulaar.iss`). Il faut Python avec `pynput` et `pyinstaller`, et Inno Setup 6.
 
 ### Signer l'installateur (pour le partager)
 
@@ -182,7 +182,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - **Committers and reviewers** (auteurs et relecteurs) : [leonbathie](https://github.com/leonbathie), members of this repository with write access.
 - **Approvers** (approbateurs) : [leonbathie](https://github.com/leonbathie).
 
-Only the files built by GitHub Actions from this repository (`.github/workflows/installateur.yml`) are signed: `FulfuldeKeyboard.exe`, `correcteur_pulaar.dll` and `Setup_Fulfulde_Keyboard.exe`. Every signing request is approved by hand.
+Only the files built by GitHub Actions from this repository (`.github/workflows/installateur.yml`) are signed: `FulfuldeKeyboard.exe`, `correcteur_pulaar.dll` and `Fulfulde_Keyboard.exe`. Every signing request is approved by hand.
 
 Seuls les fichiers fabriqués par GitHub Actions à partir de ce dépôt sont signés, et chaque signature est approuvée à la main. Les dispositions de clavier `fulffaz.dll` et `fulffqw.dll` sont livrées sans signature dans l'installateur.
 

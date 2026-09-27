@@ -82,15 +82,15 @@ jobs:
           Copy-Item programme-signe/correcteur_pulaar.dll correcteur_pulaar/ -Force
 
       # --- Installateur -----------------------------------------------------
-      - name: Setup_Fulfulde_Keyboard.exe
+      - name: Fulfulde_Keyboard.exe
         run: ./installateur/fabriquer_installateur.ps1 -Etape installateur
 
       - name: Installateur non signé
         id: installateur-non-signe
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.SIGNER == 'true' && 'installateur-non-signe' || 'Setup_Fulfulde_Keyboard' }}
-          path: Setup_Fulfulde_Keyboard.exe
+          name: ${{ env.SIGNER == 'true' && 'installateur-non-signe' || 'Fulfulde_Keyboard' }}
+          path: Fulfulde_Keyboard.exe
 
       - name: Signature de l'installateur (SignPath)
         if: env.SIGNER == 'true'
@@ -110,8 +110,8 @@ jobs:
         if: env.SIGNER == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: Setup_Fulfulde_Keyboard
-          path: installateur-signe/Setup_Fulfulde_Keyboard.exe
+          name: Fulfulde_Keyboard
+          path: installateur-signe/Fulfulde_Keyboard.exe
 
       # --- Publication d'une version ----------------------------------------
       - name: Publier la version
@@ -119,8 +119,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $setup = if ($env:SIGNER -eq 'true') { 'installateur-signe/Setup_Fulfulde_Keyboard.exe' } else { 'Setup_Fulfulde_Keyboard.exe' }
-          $notes = "Installateur de Fulfulde Keyboard (clavier pulaar) pour Windows 10 et 11. Lancez Setup_Fulfulde_Keyboard.exe, puis choisissez FUL avec Win + Espace : v donne ɓ, z ɗ, q ŋ, x ƴ, et les suggestions pulaar apparaissent au-dessus du curseur. Avec Français ou Anglais, rien ne change."
+          $setup = if ($env:SIGNER -eq 'true') { 'installateur-signe/Fulfulde_Keyboard.exe' } else { 'Fulfulde_Keyboard.exe' }
+          $notes = "Installateur de Fulfulde Keyboard (clavier pulaar) pour Windows 10 et 11. Lancez Fulfulde_Keyboard.exe, puis choisissez FUL avec Win + Espace : v donne ɓ, z ɗ, q ŋ, x ƴ, et les suggestions pulaar apparaissent au-dessus du curseur. Avec Français ou Anglais, rien ne change."
           if ($env:SIGNER -eq 'true') {
             $notes += "`n`nFree code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)."
           } else {

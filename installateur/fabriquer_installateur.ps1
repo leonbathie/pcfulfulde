@@ -1,5 +1,5 @@
 ﻿# ============================================================
-#  Fabrique Setup_Fulfulde_Keyboard.exe
+#  Fabrique Fulfulde_Keyboard.exe
 # ============================================================
 #  1. « programme » : FulfuldeKeyboard.exe avec PyInstaller
 #     (construction\dist\FulfuldeKeyboard), le clavier sans Python sur le PC de
@@ -41,7 +41,7 @@ VSVersionInfo(
                     fileType=0x1, subtype=0x0, date=(0, 0)),
   kids=[
     StringFileInfo([StringTable('040904B0', [
-      StringStruct('CompanyName', 'Fulfulde Community'),
+      StringStruct('CompanyName', 'Tarolearning'),
       StringStruct('FileDescription', 'Fulfulde Keyboard'),
       StringStruct('FileVersion', '$version'),
       StringStruct('InternalName', 'FulfuldeKeyboard'),
@@ -84,5 +84,5 @@ if ($Etape -ne 'programme') {
     }
     & $iscc @options "$racine\installateur\clavier_pulaar.iss"
     if ($LASTEXITCODE -ne 0) { throw 'Inno Setup a echoue.' }
-    Write-Host "Installateur : $racine\Setup_Fulfulde_Keyboard.exe" -ForegroundColor Green
+    Write-Host "Installateur : $racine\Fulfulde_Keyboard.exe" -ForegroundColor Green
 }
