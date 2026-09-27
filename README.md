@@ -1,6 +1,6 @@
 # Clavier Pulaar (Fulfulde) pour Windows
 
-> Un clavier pulaar qui se comporte comme ceux de Microsoft : il propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Toujours actif, comme l'ancien clavier : avec votre clavier habituel (Français, Anglais…), il place lui-même les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ). Uniquement des mots pulaar.
+> Un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace** (FUL), donne les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ), propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Avec Français ou Anglais, rien ne change. Uniquement des mots pulaar.
 
 ---
 
@@ -13,15 +13,15 @@
 ## 🚀 Installation (une fois)
 
 1. Lancez **`Setup_Clavier_Pulaar.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Clavier Pulaar`.
-2. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
-3. Écrivez avec votre clavier habituel : rien à choisir dans Win + Espace.
+2. Appuyez sur **Win + Espace** : **FUL** apparaît à côté de FRA et ENG, deux fois, avec le clavier Français (AZERTY) et avec le clavier Anglais (QWERTY) de Windows. Choisissez celui qui correspond à votre clavier.
+3. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
 
 Pour tout retirer : **Paramètres > Applications > Clavier Pulaar (Fulfulde) > Désinstaller**.
 
-L'assistant lance `installer_clavier_pulaar.ps1`, qui :
-- enregistre le correcteur orthographique pulaar et fait démarrer le clavier avec Windows ;
-- retire les claviers « Pulaar (Fulfulde) AZERTY / QWERTY » que les versions 2.0 à 2.2 inscrivaient dans Windows, d'abord de la liste Win + Espace, puis de Windows. Le sélecteur Win + Espace de Windows 11 (`InputSwitch.dll`) plantait sur eux et emportait l'Explorateur ; le moteur n'en a plus besoin ;
-- rend à Windows sa disposition Wolof, que les anciens installateurs avaient remplacée.
+L'assistant lance `installer_clavier_pulaar.ps1`, en trois parties :
+- les claviers « Pulaar (Fulfulde) AZERTY / QWERTY » des versions précédentes quittent d'abord la liste Win + Espace. Le sélecteur Win + Espace de Windows 11 (`InputSwitch.dll`) plantait sur eux et emportait l'Explorateur : depuis la version 24H2, il ne connaît que les dispositions de Windows ;
+- (administrateur) leurs dispositions (`00000867`, `a0010867`) et leurs fichiers (`fulffaz.dll`, `fulffqw.dll`) sont effacés, et la disposition Wolof de Windows, que les anciens installateurs avaient remplacée, est rendue ;
+- FUL (Pulaar, `ff-Latn-SN`) revient dans Win + Espace avec les claviers Français et Anglais de Windows ; c'est le moteur qui place les lettres pulaar. Le correcteur orthographique est enregistré et le clavier démarre avec Windows.
 
 > `Setup_Clavier_Fulfulde.exe` est l'**ancien** installateur : ne l'utilisez plus. Il remplaçait la disposition Wolof de Windows et réutilisait un *Layout Id* déjà pris, ce qui faisait planter Win + Espace.
 
@@ -55,7 +55,7 @@ Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la m�
 
 ## ✍️ Utilisation, comme sous Windows 11
 
-Écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp, Telegram…) avec votre clavier habituel, Français ou Anglais : le moteur place lui-même les lettres pulaar (voir « Les touches » plus bas).
+Choisissez **FUL (Pulaar)** avec Win + Espace, puis écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp, Telegram…) : le moteur place les lettres pulaar (voir « Les touches » plus bas). Avec Français ou Anglais, votre clavier ne change pas.
 
 - **Suggestions de texte** : une bulle apparaît au-dessus du curseur. Elle propose le mot en cours, puis, après une espace, le mot suivant. Quand deux mots vont presque toujours ensemble, elle les propose d'un bloc (*hol ko*, *hay so*, *no feewi*).
   - **Sans la souris** : **← →** surlignent une suggestion, **Tab** ou **Entrée** la prennent. La première est surlignée d'office : **Tab** seul la prend, au milieu d'un mot comme après une espace. Un **clic** ou **Alt + 1, 2, 3** marchent aussi.
@@ -83,7 +83,7 @@ La seconde commande vérifie le correcteur en passant par le service de Windows,
 ### Paramètres
 
 Cliquez sur l'icône **ɓ** près de l'horloge. Une fenêtre semblable à la page « Saisie » de Windows s'ouvre, avec des interrupteurs pour :
-- écrire en pulaar avec tous les claviers (activé d'office) : désactivé, le clavier se met en pause et Français ou Anglais restent intacts, pour écrire en français ;
+- écrire en pulaar avec tous les claviers (désactivé d'office) : activé, les lettres pulaar et les suggestions viennent aussi avec Français ou Anglais, comme avec l'ancien clavier ;
 - les suggestions de texte, et leur choix avec les flèches ;
 - la correction automatique ;
 - les mots retenus ;
@@ -100,7 +100,7 @@ Pour relancer le moteur à la main : **`LANCER_CLAVIER.bat`** (sans fenêtre noi
 
 ## ⌨️ Les touches
 
-Avec votre clavier habituel, AZERTY (Français) comme QWERTY (Anglais), le moteur place les lettres pulaar :
+Quand **FUL (Pulaar)** est choisi dans Win + Espace, le moteur place les lettres pulaar, sur les mêmes touches en AZERTY et en QWERTY :
 
 | Touche | Seule | Maj | AltGr |
 |---|---|---|---|
@@ -115,11 +115,11 @@ Avec votre clavier habituel, AZERTY (Français) comme QWERTY (Anglais), le moteu
 
 AltGr ne remplace que ce que Windows laisse vide : AltGr + E reste € en français. Ctrl et Alt gardent leurs raccourcis (Ctrl + V colle, Alt + F ouvre le menu).
 
-Pour écrire en français : clic droit sur l'icône **ɓ**, puis décochez « Écrire en pulaar avec tous les claviers ». Si FUL (Pulaar) figure dans votre liste Win + Espace avec un clavier de Windows, le moteur agit aussi quand vous le choisissez, même en pause.
+Avec Français ou Anglais, les touches restent celles de Windows (v donne v). Pour avoir les lettres pulaar avec tous les claviers, comme avec l'ancien clavier : interrupteur « Écrire en pulaar avec tous les claviers » (clic droit sur l'icône **ɓ**).
 
 **Ctrl + Shift + A** active ou désactive les suggestions.
 
-`generate_klc.py` et `installateur\compiler_dispositions.ps1` fabriquent encore les dispositions Windows `fulffaz.dll` et `fulffqw.dll` (Microsoft Keyboard Layout Creator), mais l'installateur ne les inscrit plus dans Windows : le sélecteur Win + Espace plantait sur elles.
+Dans Win + Espace, FUL utilise les claviers Français et Anglais de Windows. `generate_klc.py` et `installateur\compiler_dispositions.ps1` fabriquent encore les anciennes dispositions `fulffaz.dll` et `fulffqw.dll` (Microsoft Keyboard Layout Creator), mais l'installateur ne les inscrit plus : le sélecteur Win + Espace de Windows 11 plantait sur elles.
 
 ---
 

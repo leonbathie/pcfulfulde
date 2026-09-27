@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 Moteur du Clavier Fulfulde (Pulaar) Latin pour Windows, comme les claviers de Microsoft :
-- Toujours actif, comme l'ancien clavier : avec Français, Anglais…, le moteur
-  place lui-même les lettres pulaar (v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ).
-  Aucun clavier n'est inscrit dans Windows : ceux des versions 2.0 à 2.2
-  faisaient planter le sélecteur Win + Espace. Le réglage « Écrire en pulaar
-  avec tous les claviers » met le moteur en pause, pour écrire en français.
+- Comme les claviers de Microsoft : il agit quand FUL (Pulaar) est choisi dans
+  Win + Espace, et place lui-même les lettres pulaar (v -> ɓ, z -> ɗ, q -> ŋ,
+  x -> ƴ, ^ ou [ -> ñ) ; avec Français ou Anglais, il se tait. FUL figure dans
+  Win + Espace avec les claviers Français et Anglais de Windows : les nôtres
+  (versions précédentes) faisaient planter le sélecteur de Windows 11.
+  Le réglage « Écrire en pulaar avec tous les claviers » le rend actif partout.
 - Bulle de suggestions au-dessus du curseur de texte, comme Windows 11 : le mot
   en cours, le mot suivant et les groupes de deux mots (hol ko, hay so).
   Choix : clic, TAB (suggestion en surbrillance), ← →, Alt+1..3, ou Flèche haut puis Entrée.
@@ -147,6 +148,8 @@ _user32.ToUnicodeEx.argtypes = [wintypes.UINT, wintypes.UINT, ctypes.POINTER(cty
                                 ctypes.c_wchar_p, ctypes.c_int, wintypes.UINT, ctypes.c_void_p]
 _user32.GetAsyncKeyState.argtypes = [ctypes.c_int]
 _user32.GetAsyncKeyState.restype = ctypes.c_short
+_user32.FindWindowExW.argtypes = [wintypes.HWND, wintypes.HWND, wintypes.LPCWSTR, wintypes.LPCWSTR]
+_user32.FindWindowExW.restype = wintypes.HWND
 
 _kernel32 = ctypes.WinDLL("kernel32")
 _kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
@@ -212,10 +215,17 @@ def fenetre_administrateur(hwnd):
         _kernel32.CloseHandle(processus)
 
 
+def disposition_de(fenetre):
+    """Disposition du clavier (HKL) de la fenêtre où l'on écrit. Une application
+    du Microsoft Store vit dans un cadre (ApplicationFrameHost) : c'est sa
+    CoreWindow qui reçoit les frappes, et suit le clavier choisi."""
+    coeur = _user32.FindWindowExW(fenetre, None, "Windows.UI.Core.CoreWindow", None) if fenetre else None
+    return _user32.GetKeyboardLayout(_user32.GetWindowThreadProcessId(coeur or fenetre, None)) or 0
+
+
 def disposition_active():
     """Disposition du clavier (HKL) de la fenêtre au premier plan."""
-    thread_id = _user32.GetWindowThreadProcessId(_user32.GetForegroundWindow(), None)
-    return _user32.GetKeyboardLayout(thread_id) or 0
+    return disposition_de(_user32.GetForegroundWindow())
 
 
 _dispositions_connues = {}
@@ -1105,11 +1115,11 @@ class FulfuldeEngine:
             self.reset_context()
             return True
 
-        # Toujours actif, comme l'ancien clavier : avec Français, Anglais…, le
-        # moteur place lui-même ɓ ɗ ŋ ƴ ñ (réglage « tous les claviers »). Il
-        # agit aussi quand FUL (Pulaar) est choisi dans Win + Espace, et laisse
-        # faire un ancien clavier Pulaar de Windows, qui donne ces lettres.
-        layout = _user32.GetKeyboardLayout(_user32.GetWindowThreadProcessId(foreground, None)) or 0
+        # Comme les claviers de Microsoft : le moteur agit quand FUL (Pulaar) est
+        # choisi dans Win + Espace et place lui-même ɓ ɗ ŋ ƴ ñ, ou avec tous les
+        # claviers si on le règle ainsi. Un ancien clavier Pulaar de Windows
+        # (versions 2.0 à 2.2) donne ces lettres lui-même.
+        layout = disposition_de(foreground)
         pulaar = disposition_pulaar(layout)
         remap = (not pulaar and (self.parametres["sans_disposition"] or langue_pulaar(layout))
                  and disposition_latine(layout))
@@ -1331,8 +1341,8 @@ def run():
         print("  Le clavier agit avec tous les claviers de Windows : il place lui-même")
         print("  v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ.")
     else:
-        print("  En pause (« Écrire en pulaar avec tous les claviers » désactivé) :")
-        print("  il n'agit que si FUL (Pulaar) est choisi dans Win + Espace.")
+        print("  Le clavier agit quand FUL (Pulaar) est choisi dans Win + Espace : il place")
+        print("  lui-même v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ. Français et Anglais ne changent pas.")
     print("  Bulle : Tab prend la suggestion en surbrillance ; ← → en surlignent une autre ; Échap la ferme.")
     print("  Correction automatique à l'espace ; Retour arrière juste après l'annule.")
     print("  Paramètres et Quitter : icône ɓ près de l'horloge.")

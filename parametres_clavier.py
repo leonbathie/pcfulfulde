@@ -36,13 +36,14 @@ PAR_DEFAUT = {
     "correction_automatique": True,  # fulbe -> fulɓe à l'espace
     "fleches": True,                 # ← → choisissent dans la bulle
     "retenir_les_mots": True,        # mots_appris.json
-    "sans_disposition": True,        # actif avec tous les claviers de Windows, pas seulement Pulaar
+    "sans_disposition": False,       # lettres pulaar avec tous les claviers, pas seulement FUL
 }
 
-# 2 : « tous les claviers » devient le réglage par défaut (toujours actif, comme
-# l'ancien clavier). Le « désactivé » enregistré par la version 1 n'était que
-# l'ancien réglage par défaut : il est oublié.
-VERSION_PARAMETRES = 2
+# 3 : les lettres pulaar seulement quand FUL (Pulaar) est choisi dans Win +
+# Espace ; Français et Anglais restent intacts. Le « tous les claviers »
+# enregistré avant n'était que le réglage par défaut des versions 2.2 et 2.3 :
+# il est oublié.
+VERSION_PARAMETRES = 3
 
 
 def _ecrit_json(chemin, donnees):
@@ -69,7 +70,7 @@ class Parametres:
         lus = _lit_json(FICHIER_PARAMETRES)
         if isinstance(lus, dict):
             version = lus.get("version")
-            if not isinstance(version, int) or version < 2:
+            if not isinstance(version, int) or version < VERSION_PARAMETRES:
                 lus.pop("sans_disposition", None)
             for cle, defaut in PAR_DEFAUT.items():
                 if isinstance(lus.get(cle), type(defaut)):
@@ -272,9 +273,10 @@ class FenetreParametres:
                  fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
         self._carte(corps, "sans_disposition",
                     "Écrire en pulaar avec tous les claviers",
-                    "Toujours actif, comme l'ancien clavier : avec Français comme avec Anglais, "
-                    "v → ɓ, z → ɗ, q → ŋ, x → ƴ, ^ ou [ → ñ, et les suggestions. AltGr + v redonne v. "
-                    "Désactivez-le pour écrire en français.")
+                    "Désactivé (conseillé) : les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ, "
+                    "^ ou [ → ñ) et les suggestions seulement quand FUL (Pulaar) est choisi dans "
+                    "Win + Espace ; Français et Anglais ne changent pas. Activé : avec tous les "
+                    "claviers, comme l'ancien clavier.")
 
         tk.Label(corps, text="Suggestions et corrections", font=police_section, bg=c["fond"],
                  fg=c["texte"], anchor="w").pack(fill="x", pady=(14, 6))

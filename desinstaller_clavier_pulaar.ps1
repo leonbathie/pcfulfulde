@@ -1,17 +1,21 @@
 ﻿# ============================================================
 #  Desinstalle le Clavier Pulaar (Fulfulde)
 # ============================================================
-#  Retire les claviers Pulaar de la liste Win + Espace et le demarrage
-#  automatique (utilisateur), puis les dispositions et l'entree des
-#  applications installees (administrateur). La disposition Wolof de Windows
-#  et les autres langues ne sont pas touchees.
+#  Retire FUL (Pulaar) de la liste Win + Espace et le demarrage automatique
+#  (utilisateur), puis les anciennes dispositions et l'entree des applications
+#  installees (administrateur). Les claviers de Windows, la disposition Wolof
+#  et les autres langues ne sont pas touches.
 param([switch]$MachineOnly)
 
 $ErrorActionPreference = 'Stop'
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
-# 00000867 : l'AZERTY, disposition principale de la langue pulaar (ff-Latn-SN) ; a0010867 :
-# le QWERTY ; a0000867 : l'ancienne inscription de l'AZERTY.
+# Les anciennes dispositions (versions precedentes) : 00000867, l'AZERTY,
+# disposition principale de la langue pulaar (ff-Latn-SN) ; a0010867, le
+# QWERTY ; a0000867, l'ancienne inscription de l'AZERTY.
 $klids = @('00000867', 'a0010867', 'a0000867')
+# Sous FUL, le Clavier Pulaar met aussi les claviers Francais et Anglais de
+# Windows : ils partent de la liste avec lui, mais restent dans Windows.
+$claviersFul = $klids + @('0000040c', '00000409')
 $nosDll = @('fulffaz.dll', 'fulffqw.dll', 'kbdfulfa.dll', 'kbdfulfq.dll')
 
 function Test-Administrateur {
@@ -22,15 +26,20 @@ function Test-Administrateur {
 function Uninstall-Machine {
     foreach ($klid in $klids) {
         $cle = Join-Path $base $klid
-        $fichier = (Get-ItemProperty $cle -ErrorAction SilentlyContinue).'Layout File'
-        # Seulement nos dispositions, jamais une disposition de Windows.
-        if ($fichier -and ($nosDll -contains $fichier.ToLower())) { Remove-Item $cle -Recurse -Force }
+        $v = Get-ItemProperty $cle -ErrorAction SilentlyContinue
+        # Seulement nos anciennes dispositions : l'un de nos anciens fichiers,
+        # ou l'un de nos noms. Jamais une disposition de Windows.
+        if ($v -and (($nosDll -contains ([string]$v.'Layout File').ToLower()) -or
+                     ([string]$v.'Layout Text' -like 'Pulaar (Fulfulde)*'))) {
+            Remove-Item $cle -Recurse -Force
+        }
     }
-    # Un fichier encore ouvert par une application reste en place : il ne sert
-    # plus a rien une fois les cles retirees.
-    foreach ($dll in 'fulffaz.dll', 'fulffqw.dll') {
-        foreach ($dossier in "$env:SystemRoot\System32", "$env:SystemRoot\SysWOW64") {
-            Remove-Item (Join-Path $dossier $dll) -Force -ErrorAction SilentlyContinue
+    # Nos anciens fichiers seulement, jamais ceux de Windows (KBDFR.DLL, KBDUS.DLL).
+    # Un fichier encore ouvert reste en place : il ne sert plus a rien une fois
+    # les cles retirees.
+    foreach ($dossier in "$env:SystemRoot\System32", "$env:SystemRoot\SysWOW64") {
+        foreach ($motif in 'fulffaz.dll', 'fulffqw.dll', 'fulff*.dll.*.ancienne') {
+            Remove-Item (Join-Path $dossier $motif) -Force -ErrorAction SilentlyContinue
         }
     }
     Remove-Item 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ClavierPulaar' -Recurse -Force -ErrorAction SilentlyContinue
@@ -52,10 +61,8 @@ Remove-ItemProperty 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run' -Name 
 
 $liste = Get-WinUserLanguageList
 foreach ($langue in @($liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' })) {
-    foreach ($klid in $klids) {
-        foreach ($tip in @($langue.InputMethodTips | Where-Object { $_ -like "*:$klid" })) {
-            [void]$langue.InputMethodTips.Remove($tip)
-        }
+    foreach ($tip in @($langue.InputMethodTips | Where-Object { $claviersFul -contains ($_ -split ':')[-1].ToLower() })) {
+        [void]$langue.InputMethodTips.Remove($tip)
     }
     if ($langue.InputMethodTips.Count -eq 0) { [void]$liste.Remove($langue) }
 }

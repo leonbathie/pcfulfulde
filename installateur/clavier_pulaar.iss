@@ -3,13 +3,14 @@
 ; ============================================================
 ;  Produit Setup_Clavier_Pulaar.exe (installateur\fabriquer_installateur.ps1).
 ;  L'assistant copie le clavier dans Program Files, puis lance
-;  installer_clavier_pulaar.ps1 : le correcteur orthographique et le moteur,
-;  qui place lui-même les lettres pulaar avec n'importe quel clavier (partie
-;  utilisateur), puis l'effacement des claviers Pulaar que les versions 2.0 à
-;  2.2 inscrivaient dans Windows (partie administrateur).
+;  installer_clavier_pulaar.ps1 en trois parties : retrait des anciens claviers
+;  Pulaar de Win + Espace, effacement de leurs dispositions (administrateur),
+;  puis FUL (Pulaar) dans Win + Espace avec les claviers Français et Anglais de
+;  Windows, le correcteur orthographique et le moteur, qui place lui-même les
+;  lettres pulaar quand FUL est choisi.
 
 #define Nom "Clavier Pulaar (Fulfulde)"
-#define Version "2.3"
+#define Version "2.4"
 #define Racine ".."
 
 [Setup]
@@ -81,14 +82,16 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 ; Messages propres au Clavier Pulaar : en anglais pour toutes les langues, en
 ; français pour le français.
 [Messages]
-FinishedLabel=The Pulaar Keyboard is installed.%n%nType with your usual keyboard: v gives ɓ, z gives ɗ, q gives ŋ, x gives ƴ. As you type, suggestions appear above the cursor: Tab takes the highlighted one, ← → highlight another.%n%nTo type in another language, right-click the ɓ icon next to the clock and turn off "Écrire en pulaar avec tous les claviers".
-french.FinishedLabel=Le Clavier Pulaar est installé.%n%nÉcrivez avec votre clavier habituel : v donne ɓ, z donne ɗ, q donne ŋ, x donne ƴ. En écrivant, les suggestions apparaissent au-dessus du curseur : Tab prend la suggestion en surbrillance, ← → en surlignent une autre.%n%nPour écrire en français : clic droit sur l'icône ɓ près de l'horloge, puis décochez « Écrire en pulaar avec tous les claviers ».
+FinishedLabel=The Pulaar Keyboard is installed.%n%nPress Win + Space and choose FUL, with the French (AZERTY) or English (QWERTY) keyboard: v gives ɓ, z gives ɗ, q gives ŋ, x gives ƴ, and suggestions appear above the cursor: Tab takes the highlighted one, ← → highlight another. With French or English, your keyboard does not change.%n%nSettings are behind the ɓ icon, next to the clock.
+french.FinishedLabel=Le Clavier Pulaar est installé.%n%nAppuyez sur Win + Espace et choisissez FUL, avec le clavier Français (AZERTY) ou Anglais (QWERTY) : v donne ɓ, z donne ɗ, q donne ŋ, x donne ƴ, et les suggestions apparaissent au-dessus du curseur : Tab prend la suggestion en surbrillance, ← → en surlignent une autre. Avec Français ou Anglais, votre clavier ne change pas.%n%nLes réglages sont derrière l'icône ɓ, près de l'horloge.
 
 [CustomMessages]
+Preparation=Preparing the Pulaar keyboards...
+french.Preparation=Préparation des claviers Pulaar...
 RetraitAnciensClaviers=Removing the old Pulaar keyboards from Windows...
 french.RetraitAnciensClaviers=Retrait des anciens claviers Pulaar de Windows...
-CorrecteurSuggestions=Spell checker and Pulaar letters and suggestions...
-french.CorrecteurSuggestions=Correcteur, lettres pulaar et suggestions...
+PulaarWinEspace=FUL (Pulaar) in Win + Space, spell checker and suggestions...
+french.PulaarWinEspace=FUL (Pulaar) dans Win + Espace, correcteur et suggestions...
 Commentaire=Pulaar word suggestions and corrections
 french.Commentaire=Suggestions et correction en pulaar
 
@@ -105,12 +108,14 @@ Source: "{#Racine}\icones\clavier_pulaar.ico"; DestDir: "{app}\icones"; Flags: i
 Name: "{autoprograms}\Clavier Pulaar"; Filename: "{app}\ClavierPulaar.exe"; Comment: "{cm:Commentaire}"
 
 [Run]
-; La partie utilisateur d'abord : elle retire les anciens claviers Pulaar de la
-; liste Win + Espace avant que la partie administrateur n'efface leurs
-; dispositions (une langue renvoyant à une disposition absente fait planter
-; le sélecteur Win + Espace).
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -UtilisateurSeulement"; StatusMsg: "{cm:CorrecteurSuggestions}"; Flags: runhidden waituntilterminated runasoriginaluser
+; Dans cet ordre : les anciens claviers Pulaar quittent la liste Win + Espace
+; (utilisateur), puis leurs dispositions sont effacées (administrateur), puis
+; FUL (Pulaar) revient dans Win + Espace avec les claviers de Windows
+; (utilisateur). Une langue qui renvoie à une disposition effacée fait planter
+; le sélecteur Win + Espace.
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -Preparation"; StatusMsg: "{cm:Preparation}"; Flags: runhidden waituntilterminated runasoriginaluser
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -MachineOnly"; StatusMsg: "{cm:RetraitAnciensClaviers}"; Flags: runhidden waituntilterminated
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\installer_clavier_pulaar.ps1"" -UtilisateurSeulement"; StatusMsg: "{cm:PulaarWinEspace}"; Flags: runhidden waituntilterminated runasoriginaluser
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\desinstaller_clavier_pulaar.ps1"""; Flags: runhidden waituntilterminated; RunOnceId: "RetireClavierPulaar"

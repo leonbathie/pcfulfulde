@@ -120,7 +120,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $setup = if ($env:SIGNER -eq 'true') { 'installateur-signe/Setup_Clavier_Pulaar.exe' } else { 'Setup_Clavier_Pulaar.exe' }
-          $notes = "Installateur du Clavier Pulaar (Fulfulde) pour Windows 10 et 11. Lancez Setup_Clavier_Pulaar.exe, puis écrivez avec votre clavier habituel : v donne ɓ, z ɗ, q ŋ, x ƴ, et les suggestions pulaar apparaissent au-dessus du curseur."
+          $notes = "Installateur du Clavier Pulaar (Fulfulde) pour Windows 10 et 11. Lancez Setup_Clavier_Pulaar.exe, puis choisissez FUL avec Win + Espace : v donne ɓ, z ɗ, q ŋ, x ƴ, et les suggestions pulaar apparaissent au-dessus du curseur. Avec Français ou Anglais, rien ne change."
           if ($env:SIGNER -eq 'true') {
             $notes += "`n`nFree code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/)."
           } else {
