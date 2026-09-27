@@ -1062,16 +1062,18 @@ class FulfuldeEngine:
                 if char in ('²', '’', "'"):
                     replacement = '’'
 
-        # C. Mode Direct QWERTY
+        # C. Mode Direct QWERTY : les mêmes lettres que l'AZERTY, ñ à droite de P
         elif self.layout == "QWERTY":
-            if vk == 0xDB:      # [
-                replacement = 'Ɓ' if is_cap else 'ɓ'
-            elif vk == 0xDD:    # ]
-                replacement = 'Ɗ' if is_cap else 'ɗ'
-            elif vk == 0xBA:    # ;
+            if vk == 0x51:      # Q -> ŋ / Ŋ
                 replacement = 'Ŋ' if is_cap else 'ŋ'
-            elif vk == 0x51:    # Q
+            elif vk == 0x5A:    # Z -> ɗ / Ɗ
+                replacement = 'Ɗ' if is_cap else 'ɗ'
+            elif vk == 0x58:    # X -> ƴ / Ƴ
                 replacement = 'Ƴ' if is_cap else 'ƴ'
+            elif vk == 0x56:    # V -> ɓ / Ɓ
+                replacement = 'Ɓ' if is_cap else 'ɓ'
+            elif vk == 0xDB:    # [ -> ñ / Ñ
+                replacement = 'Ñ' if is_cap else 'ñ'
             elif vk == 0xDE:    # '
                 replacement = '’'
 

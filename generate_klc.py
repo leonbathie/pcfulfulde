@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Generateur de fichiers KLC conformes Microsoft MSKLC pour Fulfulde (AZERTY et QWERTY).
-Disposition AZERTY calquée exactement sur l'interface officielle :
+Les deux dispositions placent les lettres pulaar sur les memes lettres :
 - Touche Z -> ɗ / Ɗ (AltGr: z / Z)
 - Touche Q -> ŋ / Ŋ (AltGr: q / Q)
 - Touche X -> ƴ / Ƴ (AltGr: x / X)
 - Touche V -> ɓ / Ɓ (AltGr: v / V)
-- Touche ^ -> ñ / Ñ (AltGr: ^ / ¨)
+- Touche a droite de P -> ñ / Ñ : ^ en AZERTY (AltGr: ^ / ¨), [ en QWERTY (AltGr: [ / {)
+
+Compilation : installateur\\compiler_dispositions.ps1 (kbdutool de Microsoft
+Keyboard Layout Creator).
 """
 
 klc_azerty = """KBD\tfulffaz\t"Fulfulde (Pulaar) AZERTY"
@@ -136,7 +139,7 @@ LAYOUT
 0d\tOEM_PLUS\t0\t003d\t002b\t-1\t-1\t-1\t\t// = +
 
 // Rangee QWERTY
-10\tQ\t1\t01b4\t01b3\t-1\tq\tQ\t\t// ƴ Ƴ direct, AltGr q Q
+10\tQ\t1\t014b\t014a\t-1\tq\tQ\t\t// ŋ Ŋ direct, AltGr q Q
 11\tW\t1\tw\tW\t-1\t-1\t-1\t\t// w W
 12\tE\t1\te\tE\t-1\t00e9\t00c9\t\t// e E -> é É
 13\tR\t1\tr\tR\t-1\t-1\t-1\t\t// r R
@@ -146,8 +149,8 @@ LAYOUT
 17\tI\t1\ti\tI\t-1\t00ed\t00cd\t\t// i I -> í Í
 18\tO\t1\to\tO\t-1\t00f3\t00d3\t\t// o O -> ó Ó
 19\tP\t1\tp\tP\t-1\t-1\t-1\t\t// p P
-1a\tOEM_4\t0\t0253\t0181\t001b\t005b\t007b\t// [ { -> ɓ Ɓ
-1b\tOEM_6\t0\t0257\t018a\t001d\t005d\t007d\t// ] } -> ɗ Ɗ
+1a\tOEM_4\t1\t00f1\t00d1\t001b\t005b\t007b\t// ñ Ñ direct, AltGr [ {
+1b\tOEM_6\t0\t005d\t007d\t001d\t-1\t-1\t\t// ] }
 
 // Rangee ASDFGHJKL
 1e\tA\t1\ta\tA\t-1\t00e1\t00c1\t\t// a A -> á Á
@@ -159,16 +162,16 @@ LAYOUT
 24\tJ\t1\tj\tJ\t-1\t-1\t-1\t\t// j J
 25\tK\t1\tk\tK\t-1\t-1\t-1\t\t// k K
 26\tL\t1\tl\tL\t-1\t-1\t-1\t\t// l L
-27\tOEM_1\t0\t014b\t014a\t-1\t003b\t003a\t// ; : -> ŋ Ŋ
+27\tOEM_1\t0\t003b\t003a\t-1\t-1\t-1\t\t// ; :
 28\tOEM_7\t0\t2019\t0022\t-1\t0027\t0022\t// ' " -> ’ (hamza)
 
 // Rangee ZXCVBNM
 29\tOEM_3\t0\t0060\t007e\t-1\t-1\t-1\t\t// ` ~
 2b\tOEM_5\t0\t005c\t007c\t001c\t-1\t-1\t\t// \\ |
-2c\tZ\t1\tz\tZ\t-1\t-1\t-1\t\t// z Z
-2d\tX\t1\tx\tX\t-1\t-1\t-1\t\t// x X
+2c\tZ\t1\t0257\t018a\t-1\tz\tZ\t\t// ɗ Ɗ direct, AltGr z Z
+2d\tX\t1\t01b4\t01b3\t-1\tx\tX\t\t// ƴ Ƴ direct, AltGr x X
 2e\tC\t1\tc\tC\t-1\t-1\t-1\t\t// c C
-2f\tV\t1\tv\tV\t-1\t-1\t-1\t\t// v V
+2f\tV\t1\t0253\t0181\t-1\tv\tV\t\t// ɓ Ɓ direct, AltGr v V
 30\tB\t1\tb\tB\t-1\t0253\t0181\t\t// b B -> ɓ Ɓ
 31\tN\t1\tn\tN\t-1\t014b\t014a\t\t// n N -> ŋ Ŋ
 32\tM\t1\tm\tM\t-1\t-1\t-1\t\t// m M

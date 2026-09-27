@@ -8,7 +8,7 @@
 ;  orthographique et le moteur de suggestions (partie utilisateur).
 
 #define Nom "Clavier Pulaar (Fulfulde)"
-#define Version "2.0"
+#define Version "2.1"
 #define Racine ".."
 
 [Setup]
@@ -94,9 +94,9 @@ french.Commentaire=Suggestions et correction en pulaar
 [Files]
 Source: "{#Racine}\construction\dist\ClavierPulaar\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#Racine}\fulffaz_amd64.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#Racine}\fulffaz_x86.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Racine}\fulffaz_wow64.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Racine}\fulffqw_amd64.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#Racine}\fulffqw_x86.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#Racine}\fulffqw_wow64.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Racine}\installer_clavier_pulaar.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Racine}\desinstaller_clavier_pulaar.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#Racine}\correcteur_pulaar\correcteur_pulaar.dll"; DestDir: "{app}\correcteur_pulaar"; Flags: ignoreversion

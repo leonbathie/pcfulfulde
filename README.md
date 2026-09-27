@@ -100,6 +100,8 @@ Pour relancer le moteur à la main : **`LANCER_CLAVIER.bat`** (sans fenêtre noi
 
 ## ⌨️ Les touches
 
+Les deux claviers placent les lettres pulaar sur les mêmes lettres : **v → ɓ**, **z → ɗ**, **q → ŋ**, **x → ƴ**, et **ñ** sur la touche à droite de P. AltGr redonne la lettre latine (v, z, q, x).
+
 ### Pulaar (Fulfulde) AZERTY
 | Touche | Seule | Maj | AltGr |
 |---|---|---|---|
@@ -115,10 +117,11 @@ Pour relancer le moteur à la main : **`LANCER_CLAVIER.bat`** (sans fenêtre noi
 ### Pulaar (Fulfulde) QWERTY
 | Touche | Seule | Maj | AltGr |
 |---|---|---|---|
-| `[` | **ɓ** | **Ɓ** | [ |
-| `]` | **ɗ** | **Ɗ** | ] |
-| `;` | **ŋ** | **Ŋ** | ; |
-| `q` | **ƴ** | **Ƴ** | q |
+| `v` | **ɓ** | **Ɓ** | v |
+| `z` | **ɗ** | **Ɗ** | z |
+| `q` | **ŋ** | **Ŋ** | q |
+| `x` | **ƴ** | **Ƴ** | x |
+| `[` (à droite de P) | **ñ** | **Ñ** | [ (Maj + AltGr : {) |
 | `'` | **’** (hamza) | " | ' |
 | `b`, `d`, `n`, `y` | | | **ɓ**, **ɗ**, **ŋ**, **ƴ** |
 | `a`, `e`, `u`, `i`, `o` | | | **á**, **é**, **ú**, **í**, **ó** |
@@ -126,6 +129,8 @@ Pour relancer le moteur à la main : **`LANCER_CLAVIER.bat`** (sans fenêtre noi
 Sans le clavier Pulaar de Windows, le moteur peut encore remplacer les touches lui-même (interrupteur « Remplacer les touches sans le clavier Pulaar de Windows »). C'est l'ancien mode : **Ctrl + Shift + L** y bascule entre AZERTY et QWERTY.
 
 **Ctrl + Shift + A** active ou désactive les suggestions.
+
+Pour changer une touche : modifiez `generate_klc.py`, puis lancez `installateur\compiler_dispositions.ps1`. Il régénère `fulffaz.klc` et `fulffqw.klc`, puis compile les DLL (`*_amd64.dll` pour System32, `*_wow64.dll` pour SysWOW64) avec `kbdutool` de Microsoft Keyboard Layout Creator.
 
 ---
 

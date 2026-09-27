@@ -51,21 +51,31 @@ function Copy-SiDifferent($source, $destination) {
     if (-not (Test-Path $source)) { throw "Fichier manquant : $source" }
     if ((Test-Path $destination) -and
         (Get-FileHash $source).Hash -eq (Get-FileHash $destination).Hash) { return }
-    Copy-Item $source $destination -Force
+    try {
+        Copy-Item $source $destination -Force
+    } catch [System.IO.IOException] {
+        # Une disposition en service est tenue ouverte par Windows : elle ne
+        # s'ecrase pas, mais se renomme. La nouvelle sert apres une reconnexion.
+        Move-Item $destination "$destination.$(Get-Date -Format yyyyMMddHHmmss).ancienne" -Force
+        Copy-Item $source $destination -Force
+        Write-Host "      $(Split-Path $destination -Leaf) remplace : reconnectez-vous pour l'utiliser." -ForegroundColor Yellow
+    }
 }
 
 function Install-Machine {
     Write-Host '[1/4] Dispositions Pulaar dans Windows...' -ForegroundColor Yellow
+    if (-not [Environment]::Is64BitOperatingSystem) { throw 'Le Clavier Pulaar demande Windows 64 bits.' }
 
-    # Les fichiers : 64 bits dans System32, 32 bits dans SysWOW64
+    # Les fichiers, comme les installe Microsoft : la version 64 bits dans
+    # System32, la version WOW64 (applications 32 bits) dans SysWOW64. Les
+    # versions remplacees lors d'une mise a jour precedente partent ici.
+    foreach ($dossier in "$env:SystemRoot\System32", "$env:SystemRoot\SysWOW64") {
+        Remove-Item "$dossier\fulff*.dll.*.ancienne" -Force -ErrorAction SilentlyContinue
+    }
     foreach ($d in $dispositions) {
         $nom = [IO.Path]::GetFileNameWithoutExtension($d.Dll)
-        if ([Environment]::Is64BitOperatingSystem) {
-            Copy-SiDifferent "$ici\${nom}_amd64.dll" "$env:SystemRoot\System32\$($d.Dll)"
-            Copy-SiDifferent "$ici\${nom}_x86.dll" "$env:SystemRoot\SysWOW64\$($d.Dll)"
-        } else {
-            Copy-SiDifferent "$ici\${nom}_x86.dll" "$env:SystemRoot\System32\$($d.Dll)"
-        }
+        Copy-SiDifferent "$ici\${nom}_amd64.dll" "$env:SystemRoot\System32\$($d.Dll)"
+        Copy-SiDifferent "$ici\${nom}_wow64.dll" "$env:SystemRoot\SysWOW64\$($d.Dll)"
     }
 
     # Une disposition principale (0000xxxx) n'a pas de Layout Id. Une variante
