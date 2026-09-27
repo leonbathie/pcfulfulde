@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 Moteur du Clavier Fulfulde (Pulaar) Latin pour Windows, comme les claviers de Microsoft :
-- Actif seulement quand le clavier « Pulaar » est choisi (Win + Espace) : avec
-  Français ou Anglais, il se tait.
+- Toujours actif, comme l'ancien clavier : avec le clavier « Pulaar » de Windows
+  (Win + Espace), qui donne lui-même ɓ ɗ ŋ ƴ ñ, et avec Français, Anglais…, où
+  le moteur place ces lettres (v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ).
+  Le réglage « Écrire en pulaar avec tous les claviers » le réserve au clavier Pulaar.
 - Bulle de suggestions au-dessus du curseur de texte, comme Windows 11 : le mot
   en cours, le mot suivant et les groupes de deux mots (hol ko, hay so).
-  Choix : clic, TAB (1re suggestion), Alt+1..3, ou Flèche haut puis ←/→ et Entrée.
+  Choix : clic, TAB (suggestion en surbrillance), ← →, Alt+1..3, ou Flèche haut puis Entrée.
 - Correction automatique à l'espace (fulbe -> fulɓe), annulée par Retour arrière.
 - Seulement des mots pulaar ; les mots que l'on écrit sont retenus d'une session à l'autre.
 - Icône près de l'horloge et fenêtre de paramètres ; pas de fenêtre noire (pythonw).
@@ -14,18 +16,30 @@ Moteur du Clavier Fulfulde (Pulaar) Latin pour Windows, comme les claviers de Mi
 
 import sys
 import os
+import gc
 import time
 import json
 import math
+import queue
 import bisect
 import signal
 import threading
+import traceback
 import ctypes
 from ctypes import wintypes
 from pynput import keyboard, mouse
 from pynput.keyboard import Key, KeyCode, Controller
 
 import parametres_clavier as pc
+
+try:
+    # pynput avale en silence toute erreur du filtre clavier : le moteur les
+    # rattrape lui-même pour les écrire dans le journal, sauf celle-ci, qui
+    # retire la touche du flux.
+    from pynput._util.win32 import SystemHook
+    _SUPPRESSION = SystemHook.SuppressException
+except ImportError:  # hors Windows
+    _SUPPRESSION = ()
 
 # Forcer la sortie UTF-8 sur console Windows pour afficher correctement ɓ, ɗ, ŋ, ƴ, ’
 if sys.platform == 'win32':
@@ -42,6 +56,8 @@ DICT_PATH = os.path.join(SCRIPT_DIR, "dictionary", "dict_ff_latin.json")
 
 # Constantes Win32
 LLKHF_INJECTED = 0x00000010
+VK_LBUTTON = 0x01
+VK_RBUTTON = 0x02
 VK_TAB = 0x09
 VK_BACK = 0x08
 VK_RETURN = 0x0D
@@ -68,9 +84,28 @@ VK_LMENU = 0xA4      # Left Alt
 VK_RMENU = 0xA5      # Right Alt (AltGr)
 VK_LWIN = 0x5B       # Touche Windows
 VK_RWIN = 0x5C
+VK_OEM_7 = 0xDE      # ² en AZERTY, ' en QWERTY
 # Touche sans effet, envoyée pendant Alt+chiffre pour que le relâchement d'Alt
 # n'ouvre pas le menu de l'application.
 VK_MASQUE = 0xE8
+
+MODIFICATEURS = {VK_SHIFT, VK_LSHIFT, VK_RSHIFT, VK_CONTROL, VK_LCONTROL, VK_RCONTROL,
+                 VK_MENU, VK_LMENU, VK_RMENU, VK_LWIN, VK_RWIN}
+NOMS_DES_MODIFICATEURS = {VK_LSHIFT: "Maj", VK_RSHIFT: "Maj", VK_LCONTROL: "Ctrl",
+                          VK_RCONTROL: "Ctrl", VK_LMENU: "Alt", VK_RMENU: "AltGr",
+                          VK_LWIN: "Windows", VK_RWIN: "Windows"}
+
+# Sans le clavier Pulaar de Windows (Français, Anglais…), le moteur place
+# lui-même les lettres pulaar comme les dispositions de generate_klc.py : les
+# mêmes lettres en AZERTY et en QWERTY (codes de touche), ñ sur la touche à
+# droite de P (^ en AZERTY, [ en QWERTY : même code de position), la hamza ’
+# sur ² (AZERTY) ou ' (QWERTY).
+LETTRES_PULAAR = {0x51: "ŋŊ", 0x56: "ɓƁ", 0x58: "ƴƳ", 0x5A: "ɗƊ"}   # Q V X Z
+SCAN_A_DROITE_DE_P = 0x1A
+# AltGr + touche, là où la disposition de Windows ne met rien (AltGr + E
+# reste € en français).
+ALTGR_PULAAR = {0x41: "áÁ", 0x42: "ɓƁ", 0x44: "ɗƊ", 0x45: "éÉ", 0x49: "íÍ",
+                0x4E: "ŋŊ", 0x4F: "óÓ", 0x55: "úÚ", 0x59: "ƴƳ"}
 
 WM_KEYDOWN = 0x0100
 WM_KEYUP = 0x0101
@@ -109,6 +144,17 @@ _user32.GetKeyboardLayout.argtypes = [wintypes.DWORD]
 _user32.GetKeyboardLayout.restype = ctypes.c_void_p
 _user32.ToUnicodeEx.argtypes = [wintypes.UINT, wintypes.UINT, ctypes.POINTER(ctypes.c_ubyte),
                                 ctypes.c_wchar_p, ctypes.c_int, wintypes.UINT, ctypes.c_void_p]
+_user32.GetAsyncKeyState.argtypes = [ctypes.c_int]
+_user32.GetAsyncKeyState.restype = ctypes.c_short
+
+_kernel32 = ctypes.WinDLL("kernel32")
+_kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+_kernel32.OpenProcess.restype = wintypes.HANDLE
+_kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+_advapi32 = ctypes.WinDLL("advapi32")
+_advapi32.OpenProcessToken.argtypes = [wintypes.HANDLE, wintypes.DWORD, ctypes.POINTER(wintypes.HANDLE)]
+_advapi32.GetTokenInformation.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p,
+                                          wintypes.DWORD, ctypes.POINTER(wintypes.DWORD)]
 
 
 def normalize_fulfulde_search(s):
@@ -136,6 +182,33 @@ def is_caps_lock_active():
     if sys.platform == 'win32':
         return bool(ctypes.windll.user32.GetKeyState(VK_CAPITAL) & 1)
     return False
+
+
+def touche_enfoncee(vk):
+    """Vrai si la touche est enfoncée en ce moment, d'après Windows."""
+    return _user32.GetAsyncKeyState(vk) < 0
+
+
+def fenetre_administrateur(hwnd):
+    """Vrai si la fenêtre appartient à un programme lancé en administrateur :
+    Windows ne montre pas ses frappes au moteur, qui tourne sans ces droits."""
+    pid = wintypes.DWORD()
+    _user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    processus = _kernel32.OpenProcess(0x1000, False, pid.value)  # PROCESS_QUERY_LIMITED_INFORMATION
+    if not processus:
+        return True
+    try:
+        jeton = wintypes.HANDLE()
+        if not _advapi32.OpenProcessToken(processus, 0x0008, ctypes.byref(jeton)):  # TOKEN_QUERY
+            return True
+        try:
+            eleve, taille = wintypes.DWORD(), wintypes.DWORD()
+            _advapi32.GetTokenInformation(jeton, 20, ctypes.byref(eleve), 4, ctypes.byref(taille))  # TokenElevation
+            return bool(eleve.value)
+        finally:
+            _kernel32.CloseHandle(jeton)
+    finally:
+        _kernel32.CloseHandle(processus)
 
 
 def disposition_active():
@@ -188,11 +261,29 @@ def _fichier_de_disposition(appareil, langue):
             return ""
 
 
-def get_char_from_vk(vk_code, scan_code, shift=False, caps=False, alt_gr=False, layout=None):
+_dispositions_latines = {}
+
+
+def disposition_latine(hkl):
+    """Vrai si la disposition écrit en lettres latines : le moteur n'a rien à
+    faire avec l'arabe, le russe ou l'adlam, ni avec une méthode d'écriture
+    chinoise ou japonaise."""
+    if hkl not in _dispositions_latines:
+        if (hkl >> 28) & 0xF == 0xE:
+            _dispositions_latines[hkl] = False
+        else:
+            lettres = [get_char_from_vk(vk, 0, layout=hkl) for vk in range(0x41, 0x5B)]
+            _dispositions_latines[hkl] = sum(len(c) == 1 and c.isascii() and c.isalpha()
+                                             for c in lettres) >= 20
+    return _dispositions_latines[hkl]
+
+
+def get_char_from_vk(vk_code, scan_code, shift=False, caps=False, alt_gr=False, layout=None, morte=False):
     """Caractère produit par une touche dans la disposition de la fenêtre active.
 
     L'état des modificateurs est reconstruit à la main : GetKeyboardState, lu
-    depuis le fil du crochet, ne reflète pas celui de l'application.
+    depuis le fil du crochet, ne reflète pas celui de l'application. Une touche
+    morte (^ ¨ en français) ne donne rien, sauf avec `morte` : son accent seul.
     """
     if sys.platform != 'win32':
         return ""
@@ -211,6 +302,8 @@ def get_char_from_vk(vk_code, scan_code, shift=False, caps=False, alt_gr=False, 
     res = _user32.ToUnicodeEx(vk_code, scan_code, keyboard_state, buff, 8, 0x4, layout)
     if res > 0:
         return buff.value[:res]
+    if res < 0 and morte:
+        return buff.value[:1]
     return ""
 
 
@@ -547,13 +640,21 @@ class FulfuldeAutoCompleter:
 
 
 class FulfuldeEngine:
+    # Surveillance des crochets : Windows retire sans prévenir un crochet qui a
+    # tardé à répondre (LowLevelHooksTimeout), et le moteur ne voit plus rien.
+    TOUCHES_TEMOINS = tuple(range(0x41, 0x5B)) + (VK_SPACE, VK_BACK, VK_RETURN)
+    SILENCE_SUSPECT = 1.5      # s sans nouvelles du crochet pendant qu'une touche est enfoncée
+    ENTRE_DEUX_REPRISES = 30   # s au moins entre deux réinstallations
+
     def __init__(self):
-        self.layout = "AZERTY"  # "AZERTY" ou "QWERTY" (mode sans disposition Windows)
+        # Maj, Ctrl, Alt, AltGr, Windows : relus dans Windows à chaque frappe
+        # (lit_modificateurs).
         self.shift_pressed = False
         self.ctrl_pressed = False
         self.alt_pressed = False
         self.alt_gr_pressed = False
         self.win_pressed = False
+        self.modificateurs_vus = set()  # appuyés d'après le crochet, pour le journal
 
         # Réglages par défaut ; run() les remplace par ceux enregistrés.
         self.parametres = dict(pc.PAR_DEFAUT)
@@ -568,15 +669,26 @@ class FulfuldeEngine:
         self.pending_alt_choice = None  # Alt+chiffre, appliqué au relâchement d'Alt
         self.last_correction = None     # (tapé, corrigé, séparateur, précédent) : Retour arrière l'annule
         self.listener = None
+        self.mouse_listener = None
         self.bubble = None
         self.window = None              # fenêtre où l'on écrit
 
         # Le crochet clavier, la souris, l'icône et la bulle vivent sur quatre fils.
         self.lock = threading.RLock()
-        self.injection_lock = threading.Lock()
+        # Ce que le moteur tape (lettres pulaar, suggestions, corrections) passe
+        # par une seule file, donc dans l'ordre des frappes.
+        self.a_taper = queue.Queue()
+        threading.Thread(target=self._tape_dans_l_ordre, daemon=True).start()
 
         # Clés supprimées à ignorer sur keyup
         self.suppressed_keys = set()
+
+        # Dernières nouvelles des crochets (surveille_crochets) et journal
+        self.nouvelles_clavier = self.nouvelles_souris = time.monotonic()
+        self.derniere_reprise = 0.0
+        self.prochaine_ronde = 0.0
+        self.dispositions_notees = set()
+        self.erreurs_notees = set()
 
     @property
     def autocomplete_enabled(self):
@@ -584,10 +696,6 @@ class FulfuldeEngine:
 
     def is_capital(self):
         return self.shift_pressed ^ is_caps_lock_active()
-
-    def toggle_layout(self):
-        self.layout = "QWERTY" if self.layout == "AZERTY" else "AZERTY"
-        print(f"\n>> [DISPOSITION ACTIVÉE] : {self.layout}")
 
     def toggle_autocompletion(self):
         self.change_setting("suggestions", not self.parametres["suggestions"])
@@ -641,6 +749,8 @@ class FulfuldeEngine:
         return [
             ("Paramètres du clavier Pulaar…", False, self.open_settings),
             None,
+            ("Écrire en pulaar avec tous les claviers", p["sans_disposition"],
+             lambda: self.change_setting("sans_disposition", not p["sans_disposition"])),
             ("Suggestions de texte", p["suggestions"],
              lambda: self.change_setting("suggestions", not p["suggestions"])),
             ("Correction automatique", p["correction_automatique"],
@@ -684,19 +794,24 @@ class FulfuldeEngine:
 
     def _inject(self, backspaces, to_type, then=None):
         """Efface `backspaces` caractères puis tape `to_type` dans l'application active."""
-        def do_inject():
-            with self.injection_lock:
-                time.sleep(0.005)
+        self.a_taper.put((backspaces, to_type, then))
+
+    def _tape_dans_l_ordre(self):
+        """Le fil qui tape pour le moteur : hors du crochet, qui doit répondre vite."""
+        while True:
+            backspaces, to_type, then = self.a_taper.get()
+            try:
+                time.sleep(0.003)
                 for _ in range(backspaces):
                     controller.tap(Key.backspace)
                     time.sleep(0.002)
                 if to_type:
                     controller.type(to_type)
-            if then:
-                with self.lock:
-                    then()
-
-        threading.Thread(target=do_inject, daemon=True).start()
+                if then:
+                    with self.lock:
+                        then()
+            except Exception as e:
+                self.note_erreur("frappe", e)
 
     def end_word(self, vk, separator, keep_context):
         """Espace (keep_context), ponctuation ou Entrée : le mot en cours est fini.
@@ -795,12 +910,8 @@ class FulfuldeEngine:
                 self.apply_completion(self.current_suggestions[index])
 
     def inject_replacement(self, rep_char):
-        """Injecte le caractère Fulfulde en remplacement de la touche pressée."""
-        def do_type():
-            time.sleep(0.002)
-            controller.type(rep_char)
-
-        threading.Thread(target=do_type, daemon=True).start()
+        """Tape la lettre pulaar à la place de la touche pressée."""
+        self._inject(0, rep_char)
 
     def suppress(self, vk):
         """Retire la touche du flux : l'application ne la verra pas (keyup compris)."""
@@ -811,6 +922,7 @@ class FulfuldeEngine:
 
     def watch_foreground(self):
         """Appelé par la bulle à chaque tour : changer de fenêtre fait oublier le contexte."""
+        self.surveille_crochets()
         foreground = _user32.GetForegroundWindow()
         if foreground and foreground != self.window and foreground != self.bubble.hwnd:
             with self.lock:
@@ -826,6 +938,103 @@ class FulfuldeEngine:
         with self.lock:
             self.reset_context()
 
+    def mouse_filter(self, msg, data):
+        self.nouvelles_souris = time.monotonic()
+        return True
+
+    # --- Les crochets et leur surveillance -------------------------------------------
+
+    def demarre_ecoute(self):
+        """Pose les crochets clavier et souris (un fil de pynput chacun)."""
+        self.listener = self._ecoute_clavier()
+        self.mouse_listener = self._ecoute_souris()
+        self.listener.start()
+        self.mouse_listener.start()
+
+    def arrete_ecoute(self):
+        for ecoute in (self.listener, self.mouse_listener):
+            if ecoute:
+                ecoute.stop()
+
+    def _ecoute_clavier(self):
+        return keyboard.Listener(on_press=self.on_press, on_release=self.on_release,
+                                 win32_event_filter=self.win32_filter, suppress=False)
+
+    def _ecoute_souris(self):
+        return mouse.Listener(on_click=self.on_mouse_click, win32_event_filter=self.mouse_filter)
+
+    def surveille_crochets(self):
+        """Windows retire sans prévenir un crochet trop lent à répondre
+        (LowLevelHooksTimeout) : le moteur ne voyait plus rien, sans la moindre
+        erreur. Une touche enfoncée dont le crochet n'a rien su le trahit : on
+        le repose."""
+        maintenant = time.monotonic()
+        if maintenant < self.prochaine_ronde or maintenant - self.derniere_reprise < self.ENTRE_DEUX_REPRISES:
+            return
+        self.prochaine_ronde = maintenant + 0.1
+        if (maintenant - self.nouvelles_clavier > self.SILENCE_SUSPECT
+                and any(touche_enfoncee(vk) for vk in self.TOUCHES_TEMOINS)):
+            quoi = "clavier"
+        elif (maintenant - self.nouvelles_souris > self.SILENCE_SUSPECT
+                and (touche_enfoncee(VK_LBUTTON) or touche_enfoncee(VK_RBUTTON))):
+            quoi = "souris"
+        else:
+            return
+        # Les frappes destinées à un programme lancé en administrateur ne
+        # passent jamais par le crochet : ce n'est pas lui qui est en cause.
+        if fenetre_administrateur(_user32.GetForegroundWindow()):
+            return
+        self.derniere_reprise = maintenant
+        self.journal(f"crochet {quoi} reposé : Windows l'avait retiré")
+        if quoi == "clavier":
+            self.listener.stop()
+            self.listener = self._ecoute_clavier()
+            self.listener.start()
+        else:
+            self.mouse_listener.stop()
+            self.mouse_listener = self._ecoute_souris()
+            self.mouse_listener.start()
+        self.nouvelles_clavier = self.nouvelles_souris = time.monotonic()
+        with self.lock:
+            self.reset_context()
+
+    @staticmethod
+    def journal(message):
+        print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {message}", file=sys.stderr)
+
+    def note_erreur(self, ou, e):
+        """Une erreur dans le moteur va au journal, une fois par endroit : jamais
+        le texte tapé, seulement le type d'erreur et les lignes de code."""
+        pile = traceback.extract_tb(e.__traceback__)
+        lieu = " <- ".join(f"{os.path.basename(f.filename)}:{f.lineno} {f.name}" for f in reversed(pile))
+        if (ou, type(e).__name__, lieu) not in self.erreurs_notees and len(self.erreurs_notees) < 50:
+            self.erreurs_notees.add((ou, type(e).__name__, lieu))
+            self.journal(f"erreur ({ou}) : {type(e).__name__} — {lieu}")
+
+    def lit_modificateurs(self):
+        """Relit dans Windows l'état de Maj, Ctrl, Alt, AltGr et Windows.
+
+        Les suivre par leurs appuis et relâchements ne suffisait pas : un
+        relâchement perdu (Win + L, Ctrl + Alt + Suppr, fenêtre d'administrateur)
+        laissait la touche enfoncée aux yeux du moteur, qui ne faisait plus rien.
+        """
+        self.shift_pressed = touche_enfoncee(VK_SHIFT)
+        self.ctrl_pressed = touche_enfoncee(VK_CONTROL)
+        self.alt_pressed = touche_enfoncee(VK_LMENU)
+        self.alt_gr_pressed = touche_enfoncee(VK_RMENU)
+        self.win_pressed = touche_enfoncee(VK_LWIN) or touche_enfoncee(VK_RWIN)
+        for vk in list(self.modificateurs_vus):
+            if not touche_enfoncee(vk):
+                self.modificateurs_vus.discard(vk)
+                self.journal(f"relâchement de {NOMS_DES_MODIFICATEURS.get(vk, hex(vk))} manqué, corrigé")
+
+    def note_disposition(self, layout, pulaar, remap):
+        """Une ligne au journal pour chaque disposition rencontrée (sans le texte tapé)."""
+        if layout not in self.dispositions_notees:
+            self.dispositions_notees.add(layout)
+            etat = "clavier Pulaar" if pulaar else "lettres pulaar par le moteur" if remap else "moteur inactif"
+            self.journal(f"disposition {layout & 0xFFFFFFFF:08x} : {etat}")
+
     # --- Le crochet clavier -------------------------------------------------------
 
     def win32_filter(self, msg, data):
@@ -833,41 +1042,40 @@ class FulfuldeEngine:
         Filtre bas niveau exécuté dans le hook WH_KEYBOARD_LL Windows.
         Permet de supprimer UNIQUEMENT les touches à remplacer sans bloquer le reste.
         """
+        self.nouvelles_clavier = time.monotonic()
         # Ne JAMAIS intercepter nos propres frappes injectées
         if data.flags & LLKHF_INJECTED:
             return True
         with self.lock:
-            return self._filter(msg, data)
+            try:
+                return self._filter(msg, data)
+            except _SUPPRESSION:
+                raise
+            except Exception as e:
+                # pynput l'aurait avalée sans rien dire ; la touche passe telle quelle.
+                self.note_erreur("clavier", e)
+                return True
 
     def _filter(self, msg, data):
         vk = data.vkCode
         is_down = msg in (WM_KEYDOWN, WM_SYSKEYDOWN)
-        is_up = msg in (WM_KEYUP, WM_SYSKEYUP)
 
-        # Suivi des touches modificatrices
-        if vk in (VK_SHIFT, VK_LSHIFT, VK_RSHIFT):
-            self.shift_pressed = is_down
-            return True
-        elif vk in (VK_CONTROL, VK_LCONTROL, VK_RCONTROL):
-            self.ctrl_pressed = is_down
-            return True
-        elif vk in (VK_MENU, VK_LMENU):
-            self.alt_pressed = is_down
-            # Alt+chiffre : la suggestion n'est tapée qu'une fois Alt relâché,
-            # sans quoi l'application recevrait Alt+lettre.
-            if is_up and self.pending_alt_choice is not None:
-                index, self.pending_alt_choice = self.pending_alt_choice, None
-                threading.Timer(0.02, self.choose, args=(index,)).start()
-            return True
-        elif vk in (VK_RMENU,):
-            self.alt_gr_pressed = is_down
-            return True
-        elif vk in (VK_LWIN, VK_RWIN):
-            self.win_pressed = is_down
+        # Maj, Ctrl, Alt, AltGr et Windows passent toujours : leur état est relu
+        # dans Windows à chaque frappe (lit_modificateurs).
+        if vk in MODIFICATEURS:
+            if is_down:
+                self.modificateurs_vus.add(vk)
+            else:
+                self.modificateurs_vus.discard(vk)
+                # Alt+chiffre : la suggestion n'est tapée qu'une fois Alt relâché,
+                # sans quoi l'application recevrait Alt+lettre.
+                if vk in (VK_MENU, VK_LMENU) and self.pending_alt_choice is not None:
+                    index, self.pending_alt_choice = self.pending_alt_choice, None
+                    threading.Timer(0.02, self.choose, args=(index,)).start()
             return True
 
         # Gestion des keyups pour les touches supprimées sur keydown
-        if is_up:
+        if not is_down:
             if vk in self.suppressed_keys:
                 self.suppressed_keys.discard(vk)
                 if self.listener:
@@ -876,6 +1084,7 @@ class FulfuldeEngine:
             return True
 
         # À ce stade, nous sommes sur un keydown (is_down == True)
+        self.lit_modificateurs()
 
         # Une autre fenêtre : ce qui était en cours d'écriture ne la concerne pas.
         foreground = _user32.GetForegroundWindow()
@@ -890,11 +1099,13 @@ class FulfuldeEngine:
             self.reset_context()
             return True
 
-        # Comme les claviers de Microsoft : le clavier Pulaar n'agit que lorsqu'il
-        # est choisi (Win + Espace). Avec Français ou Anglais, il se tait.
+        # Toujours actif, comme l'ancien clavier : avec le clavier Pulaar de
+        # Windows, qui donne lui-même ɓ ɗ ŋ ƴ ñ, et avec Français, Anglais…, où
+        # le moteur place ces lettres (réglage « tous les claviers »).
         layout = _user32.GetKeyboardLayout(_user32.GetWindowThreadProcessId(foreground, None)) or 0
         pulaar = disposition_pulaar(layout)
-        remap = self.parametres["sans_disposition"] and not pulaar
+        remap = self.parametres["sans_disposition"] and not pulaar and disposition_latine(layout)
+        self.note_disposition(layout, pulaar, remap)
         if not (pulaar or remap):
             if self.current_prefix or self.previous_word or self.current_suggestions:
                 self.reset_context()
@@ -904,13 +1115,7 @@ class FulfuldeEngine:
         self.last_correction = None
         plain = not (self.ctrl_pressed or self.alt_pressed or self.alt_gr_pressed or self.shift_pressed)
 
-        # 1. Raccourcis de contrôle globaux
-        # Ctrl + Shift + L : Basculer AZERTY <-> QWERTY (sans disposition Windows seulement)
-        if remap and self.ctrl_pressed and self.shift_pressed and vk == 0x4C: # 'L'
-            self.toggle_layout()
-            return self.suppress(vk)
-
-        # Ctrl + Shift + A : Activer / Désactiver les suggestions
+        # 1. Raccourci : Ctrl + Shift + A active ou désactive les suggestions
         if self.ctrl_pressed and self.shift_pressed and vk == 0x41: # 'A'
             self.toggle_autocompletion()
             return self.suppress(vk)
@@ -970,8 +1175,9 @@ class FulfuldeEngine:
                                      daemon=True).start()
                     return self.suppress(vk)
 
-        # Si Ctrl standard est pressé (Ctrl+C, Ctrl+V, Ctrl+Retour...) -> le texte a pu changer
-        if self.ctrl_pressed and not self.alt_gr_pressed:
+        # Ctrl + touche (Ctrl+C, Ctrl+V, Ctrl+Retour...) : le texte a pu changer.
+        # Alt + touche : un raccourci de l'application (ses menus), pas du texte.
+        if (self.ctrl_pressed or self.alt_pressed) and not self.alt_gr_pressed:
             self.reset_context()
             return True
 
@@ -982,7 +1188,7 @@ class FulfuldeEngine:
 
         # Gestion Backspace
         if vk == VK_BACK:
-            if undo and not self.alt_pressed:
+            if undo:
                 # Juste après une correction automatique : on remet le mot tapé.
                 self.undo_correction(undo)
                 return self.suppress(vk)
@@ -1004,85 +1210,18 @@ class FulfuldeEngine:
         if vk == VK_RETURN:
             return self.end_word(vk, "\n", keep_context=False)
 
-        # 5. REMPLACEMENT DES CARACTÈRES FULFULDE SPÉCIAUX (sans disposition Windows :
-        # avec le clavier Pulaar de Windows, c'est lui qui donne ɓ, ɗ, ŋ, ƴ, ñ)
-        replacement = None
-        is_cap = self.is_capital()
-
-        # A. Mode AltGr (AltGr + touche)
-        if not remap:
-            pass
-        elif self.alt_gr_pressed or (self.ctrl_pressed and self.alt_pressed):
-            if vk == 0x42:      # B
-                replacement = 'Ɓ' if is_cap else 'ɓ'
-            elif vk == 0x44:    # D
-                replacement = 'Ɗ' if is_cap else 'ɗ'
-            elif vk == 0x4E:    # N
-                replacement = 'Ŋ' if is_cap else 'ŋ'
-            elif vk == 0x59:    # Y
-                replacement = 'Ƴ' if is_cap else 'ƴ'
-            elif vk == 0x41:    # A
-                replacement = 'Á' if is_cap else 'á'
-            elif vk == 0x45:    # E
-                replacement = 'É' if is_cap else 'é'
-            elif vk == 0x49:    # I
-                replacement = 'Í' if is_cap else 'í'
-            elif vk == 0x4F:    # O
-                replacement = 'Ó' if is_cap else 'ó'
-            elif vk == 0x55:    # U
-                replacement = 'Ú' if is_cap else 'ú'
-            elif vk == 0x5A:    # Z -> z/Z
-                replacement = 'Z' if is_cap else 'z'
-            elif vk == 0x51:    # Q -> q/Q
-                replacement = 'Q' if is_cap else 'q'
-            elif vk == 0x58:    # X -> x/X
-                replacement = 'X' if is_cap else 'x'
-            elif vk == 0x56:    # V -> v/V
-                replacement = 'V' if is_cap else 'v'
-            elif vk in (0xDD, 0xBA): # ^ -> ^
-                replacement = '^'
-            elif vk in (0xDE, 0xC0): # Quote / Backtick
-                replacement = '’'
-
-        # B. Mode Direct AZERTY (Calqué exactement sur l'interface officielle)
-        elif self.layout == "AZERTY":
-            if vk == 0x5A:      # Touche 'Z' physique -> ɗ / Ɗ
-                replacement = 'Ɗ' if is_cap else 'ɗ'
-            elif vk == 0x51:    # Touche 'Q' physique -> ŋ / Ŋ
-                replacement = 'Ŋ' if is_cap else 'ŋ'
-            elif vk == 0x58:    # Touche 'X' physique -> ƴ / Ƴ
-                replacement = 'Ƴ' if is_cap else 'ƴ'
-            elif vk == 0x56:    # Touche 'V' physique -> ɓ / Ɓ
-                replacement = 'Ɓ' if is_cap else 'ɓ'
-            elif vk in (0xDD, 0xBA): # Touche '^ / ¨' (à droite de P) -> ñ / Ñ
-                replacement = 'Ñ' if is_cap else 'ñ'
-            elif vk in (0xDE, 0xDC, 0xDF): # Touche '²'
-                # Vérifier le caractère produit
-                char = get_char_from_vk(vk, data.scanCode, self.shift_pressed, layout=layout)
-                if char in ('²', '’', "'"):
-                    replacement = '’'
-
-        # C. Mode Direct QWERTY : les mêmes lettres que l'AZERTY, ñ à droite de P
-        elif self.layout == "QWERTY":
-            if vk == 0x51:      # Q -> ŋ / Ŋ
-                replacement = 'Ŋ' if is_cap else 'ŋ'
-            elif vk == 0x5A:    # Z -> ɗ / Ɗ
-                replacement = 'Ɗ' if is_cap else 'ɗ'
-            elif vk == 0x58:    # X -> ƴ / Ƴ
-                replacement = 'Ƴ' if is_cap else 'ƴ'
-            elif vk == 0x56:    # V -> ɓ / Ɓ
-                replacement = 'Ɓ' if is_cap else 'ɓ'
-            elif vk == 0xDB:    # [ -> ñ / Ñ
-                replacement = 'Ñ' if is_cap else 'ñ'
-            elif vk == 0xDE:    # '
-                replacement = '’'
-
-        # Si un remplacement Fulfulde existe pour cette touche
-        if replacement:
-            self.current_prefix += replacement
-            self.update_suggestions()
-            self.inject_replacement(replacement)
-            return self.suppress(vk)
+        # 5. Les lettres pulaar quand le clavier Pulaar de Windows n'est pas
+        # choisi (avec lui, c'est Windows qui donne ɓ, ɗ, ŋ, ƴ, ñ)
+        if remap:
+            lettre = self.lettre_pulaar(vk, data.scanCode, layout)
+            if lettre:
+                if lettre.isalpha() or lettre == "’":
+                    self.current_prefix += lettre
+                    self.update_suggestions()
+                else:
+                    self.reset_context()
+                self.inject_replacement(lettre)
+                return self.suppress(vk)
 
         # Si touche normale (laisser passer vers l'application et suivre le mot en cours)
         char = get_char_from_vk(vk, data.scanCode, self.shift_pressed,
@@ -1099,6 +1238,28 @@ class FulfuldeEngine:
 
         # Laisser passer la touche originale
         return True
+
+    def lettre_pulaar(self, vk, scan, layout):
+        """Ce que donnerait le clavier Pulaar pour cette touche, sur un clavier
+        Français, Anglais… de Windows ; None si la touche reste telle quelle."""
+        maj = self.is_capital()
+        paire = LETTRES_PULAAR.get(vk)
+        if scan == SCAN_A_DROITE_DE_P:
+            paire = "ñÑ"
+        elif vk == VK_OEM_7:
+            normal = get_char_from_vk(vk, scan, layout=layout, morte=True)
+            if normal == "²" or (normal == "'" and not self.shift_pressed):
+                paire = "’’"
+        if not self.alt_gr_pressed:
+            return paire[maj] if paire else None
+        caps = is_caps_lock_active()
+        if paire:
+            # AltGr redonne ce que la touche porte d'ordinaire : AltGr + v -> v
+            return get_char_from_vk(vk, scan, self.shift_pressed, caps, layout=layout, morte=True) or None
+        if get_char_from_vk(vk, scan, self.shift_pressed, caps, True, layout, morte=True):
+            return None  # la disposition a déjà quelque chose ici : AltGr + E -> €
+        paire = ALTGR_PULAAR.get(vk)
+        return paire[maj] if paire else None
 
     def on_press(self, key):
         # Ne jamais renvoyer False pour éviter de couper le listener pynput
@@ -1150,7 +1311,7 @@ def run():
         engine.autocompleter.importe_appris(pc.lit_mots_appris())
     engine.bubble = BulleSuggestions(sur_choix=engine.choose, sur_tic=engine.watch_foreground)
     engine.bubble.regle_indice(engine.bubble_hint())
-    icone = IconeNotification(pc.ICONE, "Clavier Pulaar — suggestions quand « Pulaar » est choisi (Win + Espace)",
+    icone = IconeNotification(pc.ICONE, "Clavier Pulaar — suggestions et lettres pulaar",
                               menu=engine.tray_menu, sur_clic=engine.open_settings)
 
     print("=" * 68)
@@ -1158,22 +1319,22 @@ def run():
     print("=" * 68)
     print(f"  Dictionnaire : {len(engine.autocompleter.words)} mots pulaar, "
           f"{len(engine.autocompleter.ngrams)} avec leurs suites")
-    print("  Le clavier agit quand « Pulaar » est choisi (Win + Espace).")
+    if engine.parametres["sans_disposition"]:
+        print("  Le clavier agit avec tous les claviers de Windows ; sans le clavier Pulaar,")
+        print("  il place lui-même v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ.")
+    else:
+        print("  Le clavier agit quand « Pulaar » est choisi (Win + Espace).")
     print("  Bulle : Tab prend la suggestion en surbrillance ; ← → en surlignent une autre ; Échap la ferme.")
     print("  Correction automatique à l'espace ; Retour arrière juste après l'annule.")
     print("  Paramètres et Quitter : icône ɓ près de l'horloge.")
     print("=" * 68)
 
-    listener = keyboard.Listener(
-        on_press=engine.on_press,
-        on_release=engine.on_release,
-        win32_event_filter=engine.win32_filter,
-        suppress=False
-    )
-    engine.listener = listener
-    mouse_listener = mouse.Listener(on_click=engine.on_mouse_click)
-    listener.start()
-    mouse_listener.start()
+    # Les quelque 100 000 objets du dictionnaire restent jusqu'au bout : le
+    # ramasse-miettes ne les parcourt plus, et ne fait plus attendre le crochet
+    # clavier (Windows retire un crochet trop lent).
+    gc.collect()
+    gc.freeze()
+    engine.demarre_ecoute()
 
     def sauvegarde_reguliere():
         engine.save_learned()
@@ -1189,8 +1350,7 @@ def run():
     try:
         engine.bubble.lance()
     finally:
-        listener.stop()
-        mouse_listener.stop()
+        engine.arrete_ecoute()
         icone.arrete()
         engine.save_learned()
         print(f"--- {time.strftime('%Y-%m-%d %H:%M:%S')} arrêt")

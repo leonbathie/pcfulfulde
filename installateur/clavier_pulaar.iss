@@ -8,7 +8,7 @@
 ;  orthographique et le moteur de suggestions (partie utilisateur).
 
 #define Nom "Clavier Pulaar (Fulfulde)"
-#define Version "2.1"
+#define Version "2.2"
 #define Racine ".."
 
 [Setup]

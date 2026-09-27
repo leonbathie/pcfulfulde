@@ -1,6 +1,6 @@
 # Clavier Pulaar (Fulfulde) pour Windows
 
-> Un clavier pulaar qui se comporte comme ceux de Microsoft : il se choisit avec **Win + Espace**, propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Uniquement du pulaar : avec le clavier Français ou Anglais, il se tait.
+> Un clavier pulaar qui se comporte comme ceux de Microsoft : il propose des mots pulaar au-dessus du curseur, corrige les fautes à l'espace et retient vos mots. Toujours actif, comme l'ancien clavier : avec le clavier **Pulaar** de Win + Espace, mais aussi avec Français ou Anglais, où il place lui-même les lettres pulaar. Uniquement des mots pulaar.
 
 ---
 
@@ -55,7 +55,7 @@ Sans installateur, depuis ce dossier : `INSTALLER_LE_CLAVIER.bat` installe la m�
 
 ## ✍️ Utilisation, comme sous Windows 11
 
-Choisissez **Pulaar** avec Win + Espace, puis écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp…).
+Écrivez dans n'importe quelle application (Word, Bloc-notes, Chrome, WhatsApp, Telegram…), avec le clavier **Pulaar** de Win + Espace ou directement avec Français ou Anglais : le moteur place alors lui-même les lettres pulaar (voir « Les touches » plus bas).
 
 - **Suggestions de texte** : une bulle apparaît au-dessus du curseur. Elle propose le mot en cours, puis, après une espace, le mot suivant. Quand deux mots vont presque toujours ensemble, elle les propose d'un bloc (*hol ko*, *hay so*, *no feewi*).
   - **Sans la souris** : **← →** surlignent une suggestion, **Tab** ou **Entrée** la prennent. La première est surlignée d'office : **Tab** seul la prend, au milieu d'un mot comme après une espace. Un **clic** ou **Alt + 1, 2, 3** marchent aussi.
@@ -84,15 +84,16 @@ La seconde commande vérifie le correcteur en passant par le service de Windows,
 ### Paramètres
 
 Cliquez sur l'icône **ɓ** près de l'horloge. Une fenêtre semblable à la page « Saisie » de Windows s'ouvre, avec des interrupteurs pour :
-- les suggestions de texte ;
+- écrire en pulaar avec tous les claviers (activé d'office) : désactivé, le clavier n'agit que lorsque « Pulaar » est choisi dans Win + Espace, et Français ou Anglais restent intacts ;
+- les suggestions de texte, et leur choix avec les flèches ;
 - la correction automatique ;
 - les mots retenus ;
 - le démarrage avec Windows.
 
-Un clic droit sur l'icône permet de **Quitter**. Tout est rangé dans `%APPDATA%\ClavierPulaar` :
+Un clic droit sur l'icône donne les mêmes interrupteurs et permet de **Quitter**. Tout est rangé dans `%APPDATA%\ClavierPulaar` :
 - `parametres.json` : les réglages ;
 - `mots_appris.json` : les mots retenus ;
-- `journal.txt` : les messages du moteur.
+- `journal.txt` : les messages du moteur, jamais le texte tapé (claviers rencontrés, erreurs, crochet clavier reposé).
 
 Pour relancer le moteur à la main : **`LANCER_CLAVIER.bat`** (sans fenêtre noire).
 
@@ -126,7 +127,16 @@ Les deux claviers placent les lettres pulaar sur les mêmes lettres : **v → ɓ
 | `b`, `d`, `n`, `y` | | | **ɓ**, **ɗ**, **ŋ**, **ƴ** |
 | `a`, `e`, `u`, `i`, `o` | | | **á**, **é**, **ú**, **í**, **ó** |
 
-Sans le clavier Pulaar de Windows, le moteur peut encore remplacer les touches lui-même (interrupteur « Remplacer les touches sans le clavier Pulaar de Windows »). C'est l'ancien mode : **Ctrl + Shift + L** y bascule entre AZERTY et QWERTY.
+### Avec Français, Anglais… (sans le clavier Pulaar de Windows)
+
+Le moteur place lui-même les mêmes lettres, sur un clavier AZERTY comme QWERTY :
+- **v → ɓ**, **z → ɗ**, **q → ŋ**, **x → ƴ** (Maj : Ɓ Ɗ Ŋ Ƴ) ;
+- la touche à droite de P (`^` ou `[`) → **ñ** ;
+- `²` (AZERTY) ou `'` (QWERTY) → **’** (hamza) ;
+- **AltGr** redonne ce que la touche porte d'ordinaire (AltGr + v → v, AltGr + ^ → ^), et donne **ɓ ɗ ŋ ƴ** sur b, d, n, y et **á é í ó ú** sur les voyelles, là où Windows n'y met rien (AltGr + E reste €) ;
+- Ctrl et Alt gardent leurs raccourcis (Ctrl + V colle, Alt + F ouvre le menu).
+
+Pour écrire en français : désactivez « Écrire en pulaar avec tous les claviers » (clic droit sur l'icône **ɓ**).
 
 **Ctrl + Shift + A** active ou désactive les suggestions.
 

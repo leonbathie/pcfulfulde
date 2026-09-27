@@ -37,8 +37,13 @@ PAR_DEFAUT = {
     "correction_automatique": True,  # fulbe -> fulɓe à l'espace
     "fleches": True,                 # ← → choisissent dans la bulle
     "retenir_les_mots": True,        # mots_appris.json
-    "sans_disposition": False,       # remplacer les touches sans le clavier Pulaar de Windows
+    "sans_disposition": True,        # actif avec tous les claviers de Windows, pas seulement Pulaar
 }
+
+# 2 : « tous les claviers » devient le réglage par défaut (toujours actif, comme
+# l'ancien clavier). Le « désactivé » enregistré par la version 1 n'était que
+# l'ancien réglage par défaut : il est oublié.
+VERSION_PARAMETRES = 2
 
 
 def _ecrit_json(chemin, donnees):
@@ -64,6 +69,9 @@ class Parametres:
         self.valeurs = dict(PAR_DEFAUT)
         lus = _lit_json(FICHIER_PARAMETRES)
         if isinstance(lus, dict):
+            version = lus.get("version")
+            if not isinstance(version, int) or version < 2:
+                lus.pop("sans_disposition", None)
             for cle, defaut in PAR_DEFAUT.items():
                 if isinstance(lus.get(cle), type(defaut)):
                     self.valeurs[cle] = lus[cle]
@@ -74,7 +82,7 @@ class Parametres:
     def __setitem__(self, cle, valeur):
         self.valeurs[cle] = valeur
         try:
-            _ecrit_json(FICHIER_PARAMETRES, self.valeurs)
+            _ecrit_json(FICHIER_PARAMETRES, {"version": VERSION_PARAMETRES, **self.valeurs})
         except OSError as e:
             print(f"[parametres] {e}", file=sys.stderr)
 
@@ -282,14 +290,22 @@ class FenetreParametres:
         if not pulaar_dans_la_liste_des_langues() and not moteur.parametres["sans_disposition"]:
             tk.Label(corps, font=self.police_detail, bg=c["fond"], fg=c["alerte"], anchor="w",
                      justify="left", wraplength=self.largeur_texte + round(120 * facteur),
-                     text="Le clavier Pulaar n'est pas encore dans la liste Win + Espace. "
-                          "Lancez INSTALLER_LE_CLAVIER.bat : les suggestions n'apparaissent "
-                          "que lorsque « Pulaar » est choisi, comme pour les claviers de Microsoft."
+                     text="Le clavier Pulaar n'est pas dans la liste Win + Espace, et le clavier "
+                          "n'agit qu'avec lui : rien n'apparaîtra. Activez « Écrire en pulaar avec "
+                          "tous les claviers », ou lancez INSTALLER_LE_CLAVIER.bat."
                      ).pack(fill="x", pady=(0, 12))
 
-        tk.Label(corps, text="Suggestions et corrections", font=police_section, bg=c["fond"],
-                 fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
         self.interrupteurs = {}
+        tk.Label(corps, text="Clavier", font=police_section, bg=c["fond"],
+                 fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
+        self._carte(corps, "sans_disposition",
+                    "Écrire en pulaar avec tous les claviers",
+                    "Toujours actif, comme l'ancien clavier : avec Français ou Anglais aussi, "
+                    "v → ɓ, z → ɗ, q → ŋ, x → ƴ, ^ ou [ → ñ, et les suggestions. AltGr + v redonne v. "
+                    "Désactivé : seulement quand « Pulaar » est choisi (Win + Espace).")
+
+        tk.Label(corps, text="Suggestions et corrections", font=police_section, bg=c["fond"],
+                 fg=c["texte"], anchor="w").pack(fill="x", pady=(14, 6))
         self._carte(corps, "suggestions",
                     "Afficher les suggestions de texte lors de la frappe",
                     "Des mots pulaar dans une bulle au-dessus du curseur. Tab prend la suggestion "
@@ -312,10 +328,6 @@ class FenetreParametres:
         self._carte(corps, None, "Démarrer avec Windows",
                     "Le clavier Pulaar se lance tout seul à l'ouverture de la session.",
                     valeur=demarre_avec_windows(), action=self._demarrage)
-        self._carte(corps, "sans_disposition",
-                    "Remplacer les touches sans le clavier Pulaar de Windows",
-                    "Ancien mode : v → ɓ, z → ɗ, q → ŋ, x → ƴ sur n'importe quel clavier. "
-                    "À laisser désactivé si « Pulaar » est dans Win + Espace.")
 
         self.message = tk.Label(corps, text="", font=self.police_detail, bg=c["fond"], fg=c["detail"],
                                 anchor="w")
