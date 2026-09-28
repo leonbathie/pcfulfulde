@@ -133,7 +133,7 @@ function Install-Machine {
     if (-not (Test-Path $cleDesinstallation)) { New-Item -Path $cleDesinstallation -Force | Out-Null }
     $desinstaller = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$ici\desinstaller_clavier_pulaar.ps1`""
     Set-ItemProperty $cleDesinstallation -Name 'DisplayName' -Value 'Fulfulde Keyboard'
-    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.6.1'
+    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.6.2'
     Set-ItemProperty $cleDesinstallation -Name 'Publisher' -Value 'Taro Learning'
     Set-ItemProperty $cleDesinstallation -Name 'DisplayIcon' -Value "$ici\icones\clavier_pulaar.ico"
     Set-ItemProperty $cleDesinstallation -Name 'InstallLocation' -Value $ici

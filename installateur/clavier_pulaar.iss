@@ -10,7 +10,7 @@
 ;  lettres pulaar quand FUL est choisi.
 
 #define Nom "Fulfulde Keyboard"
-#define Version "2.6.1"
+#define Version "2.6.2"
 #define Racine ".."
 
 [Setup]
@@ -32,6 +32,9 @@ SetupIconFile={#Racine}\icones\clavier_pulaar.ico
 UninstallDisplayIcon={app}\FulfuldeKeyboard.exe
 UninstallDisplayName={#Nom}
 Compression=lzma2/ultra64
+; 32 Mo au lieu de 64 : les ~26 Mo de fichiers y tiennent (même taille finale),
+; et la compression demande moitié moins de mémoire (PC de 4 Go).
+LZMADictionarySize=32768
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible

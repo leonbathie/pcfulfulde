@@ -109,15 +109,14 @@ PAR_DEFAUT = {
     "correction_automatique": True,  # fulbe -> fulɓe à l'espace
     "fleches": True,                 # ← → choisissent dans la bulle
     "retenir_les_mots": True,        # mots_appris.json
-    "sans_disposition": False,       # lettres pulaar avec tous les claviers, pas seulement FUL
     "ful_propose": False,            # la fenêtre a déjà proposé d'ajouter FUL à Win + Espace
 }
 
-# 3 : les lettres pulaar seulement quand FUL (Pulaar) est choisi dans Win +
-# Espace ; Français et Anglais restent intacts. Le « tous les claviers »
-# enregistré avant n'était que le réglage par défaut des versions 2.2 et 2.3 :
-# il est oublié.
-VERSION_PARAMETRES = 3
+# 4 : le réglage « Écrire en pulaar avec tous les claviers » (sans_disposition)
+# n'existe plus : les lettres pulaar seulement quand FUL est choisi dans
+# Win + Espace, Français et Anglais toujours intacts. Une valeur enregistrée
+# par une version précédente est ignorée (seules les clés de PAR_DEFAUT sont lues).
+VERSION_PARAMETRES = 4
 
 
 def _ecrit_json(chemin, donnees):
@@ -143,18 +142,22 @@ class Parametres:
         self.valeurs = dict(PAR_DEFAUT)
         lus = _lit_json(FICHIER_PARAMETRES)
         if isinstance(lus, dict):
-            version = lus.get("version")
-            if not isinstance(version, int) or version < VERSION_PARAMETRES:
-                lus.pop("sans_disposition", None)
             for cle, defaut in PAR_DEFAUT.items():
                 if isinstance(lus.get(cle), type(defaut)):
                     self.valeurs[cle] = lus[cle]
+            # Le fichier d'une version précédente est réécrit tout de suite : une
+            # ancienne version relancée n'y retrouve plus « sans_disposition ».
+            if lus.get("version") != VERSION_PARAMETRES or set(lus) - set(PAR_DEFAUT) - {"version"}:
+                self._enregistre()
 
     def __getitem__(self, cle):
         return self.valeurs[cle]
 
     def __setitem__(self, cle, valeur):
         self.valeurs[cle] = valeur
+        self._enregistre()
+
+    def _enregistre(self):
         try:
             _ecrit_json(FICHIER_PARAMETRES, {"version": VERSION_PARAMETRES, **self.valeurs})
         except OSError as e:
@@ -358,12 +361,9 @@ class FenetreParametres:
                 lien=("Ajouter FUL à Win + Espace", self._ajoute_ful))
         tk.Label(corps, text="Clavier", font=police_section, bg=c["fond"],
                  fg=c["texte"], anchor="w").pack(fill="x", pady=(14 if self.carte_ful else 0, 6))
-        self._carte(corps, "sans_disposition",
-                    "Écrire en pulaar avec tous les claviers",
-                    "Désactivé (conseillé) : les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ, "
-                    "^ ou [ → ñ) et les suggestions seulement quand FUL (Pulaar) est choisi dans "
-                    "Win + Espace ; Français et Anglais ne changent pas. Activé : avec tous les "
-                    "claviers, comme l'ancien clavier.")
+        self._carte(corps, None, "Lettres pulaar avec FUL",
+                    "Quand FUL (Pulaar) est choisi dans Win + Espace : v → ɓ, z → ɗ, q → ŋ, x → ƴ, "
+                    "^ ou [ → ñ, et les suggestions. Avec Français ou Anglais, le clavier ne change pas.")
 
         tk.Label(corps, text="Suggestions et corrections", font=police_section, bg=c["fond"],
                  fg=c["texte"], anchor="w").pack(fill="x", pady=(14, 6))

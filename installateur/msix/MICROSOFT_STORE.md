@@ -63,11 +63,11 @@ Get-AppxPackage *.FulfuldeKeyboard | Remove-AppxPackage
 
 ## 4. Capacités restreintes : texte à coller (en anglais, pour l'équipe de certification)
 
-Le paquet déclare deux capacités restreintes, que Microsoft demande de justifier :
+Le paquet déclare deux capacités restreintes, que Microsoft demande de justifier, dans la page **Submission options**. Chaque case accepte 500 caractères au plus : ces textes en font 468 et 480.
 
-> **runFullTrust**: Fulfulde Keyboard is a desktop keyboard helper. It uses a low-level keyboard hook to type Pulaar letters (ɓ ɗ ŋ ƴ ñ) and to show word suggestions, only while the user has selected the Fulfulde (FUL) input language in Win + Space. Keystrokes are processed locally; they are never stored or transmitted.
+> **runFullTrust**: Fulfulde Keyboard is a Win32 desktop keyboard helper for the Pulaar (Fulfulde) language. It needs full trust for a low-level keyboard hook and SendInput, to type the Pulaar letters (ɓ ɗ ŋ ƴ ñ) and insert the word suggestions the user picks, plus a suggestion window, a tray icon and a startup task. It acts only while the user has selected the Fulfulde (FUL) input language. Keystrokes are processed locally, never stored or sent; the app makes no network connections.
 >
-> **unvirtualizedResources**: at the user's request (the "Ajouter FUL à Win + Espace" button in the app's settings window), the app adds the Fulfulde (ff-Latn-SN) input language, with the built-in French and US keyboard layouts, to the user's Windows language list, and registers a Pulaar spell checker (Windows Spell Checking API provider) so that other apps such as Edge and Chrome can use it. These per-user settings must be visible to Windows and to other apps. Only these locations are excluded from virtualization: HKCU\Control Panel\International, HKCU\Keyboard Layout, HKCU\Software\Microsoft\CTF, HKCU\Software\Microsoft\Input, HKCU\Software\Microsoft\Spelling, the spell checker's CLSID key, and %LOCALAPPDATA%\ClavierPulaar.
+> **unvirtualizedResources**: At the user's request (a link in the app's settings), the app adds the Fulfulde (ff-Latn-SN) input language, with the built-in French and US keyboards, to the user's Windows language list so FUL appears in Win + Space, and registers a Pulaar spell checker for other apps (Edge, Chrome). These per-user settings must be visible to Windows, so only HKCU Control Panel\International, Keyboard Layout, Software\Microsoft\CTF, Input, Spelling and the checker's CLSID are unvirtualized.
 
 ### Notes pour la certification (en anglais)
 

@@ -7,7 +7,7 @@ Moteur de Fulfulde Keyboard, le clavier pulaar pour Windows, comme les claviers 
   x -> ƴ, ^ ou [ -> ñ) ; avec Français ou Anglais, il se tait. FUL figure dans
   Win + Espace avec les claviers Français et Anglais de Windows : les nôtres
   (versions précédentes) faisaient planter le sélecteur de Windows 11.
-  Le réglage « Écrire en pulaar avec tous les claviers » le rend actif partout.
+  Avec Français ou Anglais, il ne change jamais rien : aucun réglage ne l'y rend actif.
 - Bulle de suggestions au-dessus du curseur de texte, comme Windows 11 : le mot
   en cours, le mot suivant et les groupes de deux mots (hol ko, hay so).
   Choix : clic, TAB (suggestion en surbrillance), ← →, Alt+1..3, ou Flèche haut puis Entrée.
@@ -765,8 +765,6 @@ class FulfuldeEngine:
         return [
             (f"Paramètres de {pc.NOM}…", False, self.open_settings),
             None,
-            ("Écrire en pulaar avec tous les claviers", p["sans_disposition"],
-             lambda: self.change_setting("sans_disposition", not p["sans_disposition"])),
             ("Suggestions de texte", p["suggestions"],
              lambda: self.change_setting("suggestions", not p["suggestions"])),
             ("Correction automatique", p["correction_automatique"],
@@ -1115,14 +1113,13 @@ class FulfuldeEngine:
             self.reset_context()
             return True
 
-        # Comme les claviers de Microsoft : le moteur agit quand FUL (Pulaar) est
-        # choisi dans Win + Espace et place lui-même ɓ ɗ ŋ ƴ ñ, ou avec tous les
-        # claviers si on le règle ainsi. Un ancien clavier Pulaar de Windows
+        # Comme les claviers de Microsoft : le moteur n'agit que quand FUL (Pulaar)
+        # est choisi dans Win + Espace, et place lui-même ɓ ɗ ŋ ƴ ñ. Avec Français
+        # ou Anglais, il ne touche à rien. Un ancien clavier Pulaar de Windows
         # (versions 2.0 à 2.2) donne ces lettres lui-même.
         layout = disposition_de(foreground)
         pulaar = disposition_pulaar(layout)
-        remap = (not pulaar and (self.parametres["sans_disposition"] or langue_pulaar(layout))
-                 and disposition_latine(layout))
+        remap = not pulaar and langue_pulaar(layout) and disposition_latine(layout)
         self.note_disposition(layout, pulaar, remap)
         if not (pulaar or remap):
             if self.current_prefix or self.previous_word or self.current_suggestions:
@@ -1341,12 +1338,8 @@ def run():
     print("=" * 68)
     print(f"  Dictionnaire : {len(engine.autocompleter.words)} mots pulaar, "
           f"{len(engine.autocompleter.ngrams)} avec leurs suites")
-    if engine.parametres["sans_disposition"]:
-        print("  Le clavier agit avec tous les claviers de Windows : il place lui-même")
-        print("  v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ.")
-    else:
-        print("  Le clavier agit quand FUL (Pulaar) est choisi dans Win + Espace : il place")
-        print("  lui-même v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ. Français et Anglais ne changent pas.")
+    print("  Le clavier agit quand FUL (Pulaar) est choisi dans Win + Espace : il place")
+    print("  lui-même v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ, ^ ou [ -> ñ. Français et Anglais ne changent pas.")
     print("  Bulle : Tab prend la suggestion en surbrillance ; ← → en surlignent une autre ; Échap la ferme.")
     print("  Correction automatique à l'espace ; Retour arrière juste après l'annule.")
     print("  Paramètres et Quitter : icône ɓ près de l'horloge.")

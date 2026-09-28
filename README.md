@@ -87,7 +87,6 @@ La seconde commande vérifie le correcteur en passant par le service de Windows,
 ### Paramètres
 
 Cliquez sur l'icône **ɓ** près de l'horloge. Une fenêtre semblable à la page « Saisie » de Windows s'ouvre, avec des interrupteurs pour :
-- écrire en pulaar avec tous les claviers (désactivé d'office) : activé, les lettres pulaar et les suggestions viennent aussi avec Français ou Anglais, comme avec l'ancien clavier ;
 - les suggestions de texte, et leur choix avec les flèches ;
 - la correction automatique ;
 - les mots retenus ;
@@ -120,7 +119,7 @@ Quand **FUL (Pulaar)** est choisi dans Win + Espace, le moteur place les lettres
 
 AltGr ne remplace que ce que Windows laisse vide : AltGr + E reste € en français. Ctrl et Alt gardent leurs raccourcis (Ctrl + V colle, Alt + F ouvre le menu).
 
-Avec Français ou Anglais, les touches restent celles de Windows (v donne v). Pour avoir les lettres pulaar avec tous les claviers, comme avec l'ancien clavier : interrupteur « Écrire en pulaar avec tous les claviers » (clic droit sur l'icône **ɓ**).
+Avec Français ou Anglais, les touches restent toujours celles de Windows (v donne v) : aucun réglage n'y met les lettres pulaar.
 
 **Ctrl + Shift + A** active ou désactive les suggestions.
 
