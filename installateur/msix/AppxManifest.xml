@@ -6,20 +6,21 @@
   et la version.
 
   Le programme tourne en confiance totale (runFullTrust) : son crochet clavier
-  et ses frappes sont ceux d'un programme de bureau. Les clés HKCU ci-dessous
-  échappent à la virtualisation du paquet (unvirtualizedResources) : c'est là
-  que Windows range la liste Win + Espace (FUL) et le correcteur orthographique,
-  que les autres applications doivent voir. Sous Windows 10, où la liste de clés
-  n'existe pas, toute la virtualisation d'HKCU et d'AppData est levée.
+  et ses frappes sont ceux d'un programme de bureau. Il est déclaré « win32App »
+  (uap10:RuntimeBehavior) : Windows ne virtualise ni son registre HKCU ni son
+  AppData, comme pour l'installateur .exe. C'est là que Windows range la liste
+  Win + Espace (FUL) et le correcteur orthographique, que les autres
+  applications doivent voir. Le Store a refusé la capacité qui levait la
+  virtualisation (rapport de certification du 30/09/2026, 10.6.3) : le paquet
+  ne la demande plus.
 -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10"
   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
-  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
-  xmlns:virtualization="http://schemas.microsoft.com/appx/manifest/virtualization/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  IgnorableNamespaces="uap desktop desktop6 virtualization rescap">
+  IgnorableNamespaces="uap uap10 desktop rescap">
 
   <Identity Name="{{NOM}}" Publisher="{{EDITEUR}}" Version="{{VERSION}}" ProcessorArchitecture="x64" />
 
@@ -28,23 +29,6 @@
     <PublisherDisplayName>{{EDITEUR_AFFICHE}}</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <Description>Clavier pulaar (fulfulde) : lettres ɓ ɗ ŋ ƴ ñ, suggestions et correction de mots pulaar quand FUL est choisi dans Win + Espace.</Description>
-    <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
-    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
-    <virtualization:FileSystemWriteVirtualization>
-      <virtualization:ExcludedDirectories>
-        <virtualization:ExcludedDirectory>$(KnownFolder:LocalAppData)\ClavierPulaar</virtualization:ExcludedDirectory>
-      </virtualization:ExcludedDirectories>
-    </virtualization:FileSystemWriteVirtualization>
-    <virtualization:RegistryWriteVirtualization>
-      <virtualization:ExcludedKeys>
-        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Control Panel\International</virtualization:ExcludedKey>
-        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Keyboard Layout</virtualization:ExcludedKey>
-        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Software\Microsoft\CTF</virtualization:ExcludedKey>
-        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Software\Microsoft\Input</virtualization:ExcludedKey>
-        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Software\Microsoft\Spelling</virtualization:ExcludedKey>
-        <virtualization:ExcludedKey>HKEY_CURRENT_USER\Software\Classes\CLSID\{BA4F4FD0-8BB2-49E2-9B55-B3350BC1A5B5}</virtualization:ExcludedKey>
-      </virtualization:ExcludedKeys>
-    </virtualization:RegistryWriteVirtualization>
   </Properties>
 
   <Dependencies>
@@ -56,7 +40,8 @@
   </Resources>
 
   <Applications>
-    <Application Id="FulfuldeKeyboard" Executable="FulfuldeKeyboard.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="FulfuldeKeyboard" Executable="FulfuldeKeyboard.exe"
+      uap10:RuntimeBehavior="win32App" uap10:TrustLevel="mediumIL">
       <uap:VisualElements
         DisplayName="Fulfulde Keyboard"
         Description="Clavier pulaar (fulfulde) : lettres, suggestions et correction."
@@ -65,7 +50,8 @@
         Square44x44Logo="Assets\Square44x44Logo.png" />
       <Extensions>
         <!-- Démarre avec Windows ; l'utilisateur le règle dans Paramètres > Applications > Démarrage. -->
-        <desktop:Extension Category="windows.startupTask" Executable="FulfuldeKeyboard.exe" EntryPoint="Windows.FullTrustApplication">
+        <desktop:Extension Category="windows.startupTask" Executable="FulfuldeKeyboard.exe"
+          uap10:RuntimeBehavior="win32App" uap10:TrustLevel="mediumIL">
           <desktop:StartupTask TaskId="FulfuldeKeyboard" Enabled="true" DisplayName="Fulfulde Keyboard" />
         </desktop:Extension>
       </Extensions>
@@ -74,6 +60,5 @@
 
   <Capabilities>
     <rescap:Capability Name="runFullTrust" />
-    <rescap:Capability Name="unvirtualizedResources" />
   </Capabilities>
 </Package>

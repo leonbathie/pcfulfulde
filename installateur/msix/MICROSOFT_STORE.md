@@ -33,7 +33,7 @@ Get-AppxPackage *.FulfuldeKeyboard | Remove-AppxPackage
 ## 3. Soumission
 
 - **Tarification et disponibilité** : gratuit, tous les marchés.
-- **Propriétés** : catégorie *Utilitaires et outils* (ou *Productivité*). Politique de confidentialité : `https://leonbathie.github.io/pcfulfulde/privacy.html`. Site web : `https://leonbathie.github.io/pcfulfulde/`. Assistance : `https://github.com/leonbathie/pcfulfulde/issues`.
+- **Propriétés** : catégorie *Utilitaires et outils* (ou *Productivité*). Politique de confidentialité : `https://leonbathie.github.io/pcfulfulde/privacy.html`. Dans **Support info**, cocher **Use different details for this app**, puis : site web `https://leonbathie.github.io/pcfulfulde/`, contact d'assistance `https://github.com/leonbathie/pcfulfulde/issues`. Le rapport de certification du 30/09/2026 réclamait ce contact.
 - **Classification par âge** : questionnaire ; aucune violence, aucun achat, aucun échange entre utilisateurs.
 - **Packages** : déposer le `.msix`.
 - **Description dans le Store (français)** : le texte ci-dessous, et au moins une capture d'écran de 1366 × 768 ou plus (la bulle de suggestions dans Word ou le Bloc-notes, la fenêtre de paramètres).
@@ -61,13 +61,13 @@ Get-AppxPackage *.FulfuldeKeyboard | Remove-AppxPackage
 
 `pulaar`, `fulfulde`, `fula`, `clavier`, `keyboard`, `Sénégal`, `ɓ ɗ ŋ ƴ`
 
-## 4. Capacités restreintes : texte à coller (en anglais, pour l'équipe de certification)
+## 4. Capacité restreinte : texte à coller (en anglais, pour l'équipe de certification)
 
-Le paquet déclare deux capacités restreintes, que Microsoft demande de justifier, dans la page **Submission options**. Chaque case accepte 500 caractères au plus : ces textes en font 468 et 480.
+Le paquet ne déclare qu'une capacité restreinte, **runFullTrust**, à justifier dans la page **Submission options** (500 caractères au plus ; ce texte en fait 468) :
 
 > **runFullTrust**: Fulfulde Keyboard is a Win32 desktop keyboard helper for the Pulaar (Fulfulde) language. It needs full trust for a low-level keyboard hook and SendInput, to type the Pulaar letters (ɓ ɗ ŋ ƴ ñ) and insert the word suggestions the user picks, plus a suggestion window, a tray icon and a startup task. It acts only while the user has selected the Fulfulde (FUL) input language. Keystrokes are processed locally, never stored or sent; the app makes no network connections.
->
-> **unvirtualizedResources**: At the user's request (a link in the app's settings), the app adds the Fulfulde (ff-Latn-SN) input language, with the built-in French and US keyboards, to the user's Windows language list so FUL appears in Win + Space, and registers a Pulaar spell checker for other apps (Edge, Chrome). These per-user settings must be visible to Windows, so only HKCU Control Panel\International, Keyboard Layout, Software\Microsoft\CTF, Input, Spelling and the checker's CLSID are unvirtualized.
+
+La version 2.6.2 demandait aussi **unvirtualizedResources**, refusée le 30/09/2026 (politique 10.6.3). Depuis la 2.6.3, le programme est déclaré `win32App` dans le manifeste : Windows ne virtualise pas ses écritures, et « Ajouter FUL à Win + Espace » marche sans cette capacité (vérifié avec un paquet d'essai : registre HKCU, processus enfants et AppData arrivent tous au vrai emplacement).
 
 ### Notes pour la certification (en anglais)
 
