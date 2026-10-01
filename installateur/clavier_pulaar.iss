@@ -10,7 +10,7 @@
 ;  lettres pulaar quand FUL est choisi.
 
 #define Nom "Fulfulde Keyboard"
-#define Version "2.6.3"
+#define Version "2.6.4"
 #define Racine ".."
 
 [Setup]

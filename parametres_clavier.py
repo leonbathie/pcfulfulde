@@ -46,6 +46,23 @@ DOSSIER_PROGRAMME = (os.path.dirname(sys.executable) if getattr(sys, "frozen", F
 APPMODEL_ERROR_NO_PACKAGE = 15700
 
 
+def _windows_en_francais():
+    """Vrai si Windows s'affiche en français ; sinon, la fenêtre et le menu sont en anglais."""
+    try:
+        return ctypes.windll.kernel32.GetUserDefaultUILanguage() & 0x3FF == 0x0C  # LANG_FRENCH
+    except (AttributeError, OSError):  # hors Windows
+        return True
+
+
+FRANCAIS = _windows_en_francais()
+
+
+def T(francais, anglais):
+    """Le texte dans la langue de Windows : français, sinon anglais (l'équipe de
+    certification du Microsoft Store, les locuteurs du Nigeria ou du Cameroun)."""
+    return francais if FRANCAIS else anglais
+
+
 def en_paquet():
     """Vrai quand le clavier tourne depuis son paquet du Microsoft Store."""
     if sys.platform != "win32":
@@ -279,7 +296,7 @@ class Interrupteur:
         self._dessine()
 
     def _dessine(self):
-        self.etat.configure(text="Activé" if self.valeur else "Désactivé")
+        self.etat.configure(text=T("Activé", "On") if self.valeur else T("Désactivé", "Off"))
         if self.images:
             self.bouton.configure(image=self.images[1 if self.valeur else 0])
         else:
@@ -317,7 +334,7 @@ class FenetreParametres:
         facteur = root.winfo_fpixels("1i") / 96.0
 
         f = self.fenetre = tk.Toplevel(root)
-        f.title(f"{NOM} — Paramètres")
+        f.title(T(f"{NOM} — Paramètres", f"{NOM} — Settings"))
         f.configure(bg=c["fond"])
         f.resizable(False, False)
         f.protocol("WM_DELETE_WINDOW", self.ferme)
@@ -344,62 +361,80 @@ class FenetreParametres:
         corps.pack(fill="both", expand=True)
         self.largeur_texte = round(430 * facteur)
 
-        tk.Label(corps, text="Saisie", font=police_titre, bg=c["fond"], fg=c["texte"],
+        tk.Label(corps, text=T("Saisie", "Typing"), font=police_titre, bg=c["fond"], fg=c["texte"],
                  anchor="w").pack(fill="x")
-        tk.Label(corps, text=f"{NOM} — seulement des mots pulaar",
+        tk.Label(corps, text=T(f"{NOM} — seulement des mots pulaar", f"{NOM} — Pulaar words only"),
                  font=self.police_detail, bg=c["fond"], fg=c["detail"], anchor="w").pack(fill="x", pady=(0, 14))
 
         self.interrupteurs = {}
+        tk.Label(corps, text=T("Clavier", "Keyboard"), font=police_section, bg=c["fond"],
+                 fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
         self.carte_ful = None
         if not ful_dans_win_espace():
-            tk.Label(corps, text="Win + Espace", font=police_section, bg=c["fond"],
-                     fg=c["texte"], anchor="w").pack(fill="x", pady=(0, 6))
             self.carte_ful = self._carte(
-                corps, None, "FUL (Pulaar) n'est pas encore dans Win + Espace",
-                "Ajoutez-le pour écrire en pulaar : FUL, avec les claviers Français (AZERTY) et "
-                "Anglais (QWERTY) de Windows, et le correcteur orthographique pulaar.",
-                lien=("Ajouter FUL à Win + Espace", self._ajoute_ful))
-        tk.Label(corps, text="Clavier", font=police_section, bg=c["fond"],
-                 fg=c["texte"], anchor="w").pack(fill="x", pady=(14 if self.carte_ful else 0, 6))
-        self._carte(corps, None, "Lettres pulaar avec FUL",
-                    "Quand FUL (Pulaar) est choisi dans Win + Espace : v → ɓ, z → ɗ, q → ŋ, x → ƴ, "
-                    "^ ou [ → ñ, et les suggestions. Avec Français ou Anglais, le clavier ne change pas.")
+                corps, None, T("FUL (Pulaar) n'est pas encore dans Win + Espace",
+                               "FUL (Pulaar) is not in Win + Space yet"),
+                T("Ajoutez-le pour écrire en pulaar : FUL, avec les claviers Français (AZERTY) et "
+                  "Anglais (QWERTY) de Windows, et le correcteur orthographique pulaar.",
+                  "Add it to type in Pulaar: FUL, with the built-in French (AZERTY) and English "
+                  "(QWERTY) keyboards, and the Pulaar spell checker."),
+                lien=(T("Ajouter FUL à Win + Espace", "Add FUL to Win + Space"), self._ajoute_ful))
+        # Les lettres et les suggestions ne viennent qu'avec FUL : la carte le dit
+        # toujours, en tête (la certification du Store l'avait cherché, 01/10/2026).
+        self._carte(corps, None, T("Pour écrire en pulaar : Win + Espace, puis FUL",
+                                   "To type in Pulaar: press Win + Space, then choose FUL"),
+                    T("Les lettres pulaar (v → ɓ, z → ɗ, q → ŋ, x → ƴ, ^ ou [ → ñ) et les suggestions "
+                      "au-dessus du curseur ne viennent qu'avec FUL. Avec Français ou Anglais, le "
+                      "clavier ne change pas.",
+                      "Pulaar letters (v → ɓ, z → ɗ, q → ŋ, x → ƴ, ^ or [ → ñ) and the word suggestions "
+                      "above the cursor only appear while FUL is selected. With English or French, "
+                      "your keyboard does not change."))
 
-        tk.Label(corps, text="Suggestions et corrections", font=police_section, bg=c["fond"],
-                 fg=c["texte"], anchor="w").pack(fill="x", pady=(14, 6))
+        tk.Label(corps, text=T("Suggestions et corrections", "Suggestions and corrections"),
+                 font=police_section, bg=c["fond"], fg=c["texte"], anchor="w").pack(fill="x", pady=(14, 6))
         self._carte(corps, "suggestions",
-                    "Afficher les suggestions de texte lors de la frappe",
-                    "Des mots pulaar dans une bulle au-dessus du curseur. Tab prend la suggestion "
-                    "en surbrillance ; clic, Alt + 1, 2, 3 ou Flèche haut pour une autre.")
+                    T("Afficher les suggestions de texte lors de la frappe", "Show text suggestions as I type"),
+                    T("Des mots pulaar dans une bulle au-dessus du curseur, quand FUL est choisi. Tab "
+                      "prend la suggestion en surbrillance ; clic, Alt + 1, 2, 3 ou Flèche haut pour une autre.",
+                      "Pulaar words in a bubble above the cursor, while FUL is selected. Tab takes the "
+                      "highlighted suggestion; click, Alt + 1, 2, 3 or Up arrow for another one."))
         self._carte(corps, "fleches",
-                    "Choisir les suggestions avec les flèches ← →",
-                    "Sans la souris : ← → surlignent une suggestion, Tab ou Entrée la prennent. "
-                    "Pour déplacer le curseur dans le texte pendant que la bulle est ouverte : Échap d'abord.")
+                    T("Choisir les suggestions avec les flèches ← →", "Pick suggestions with the ← → keys"),
+                    T("Sans la souris : ← → surlignent une suggestion, Tab ou Entrée la prennent. "
+                      "Pour déplacer le curseur dans le texte pendant que la bulle est ouverte : Échap d'abord.",
+                      "Without the mouse: ← → highlight a suggestion, Tab or Enter takes it. To move the "
+                      "text cursor while the bubble is open, press Esc first."))
         self._carte(corps, "correction_automatique",
-                    "Corriger automatiquement les fautes d'orthographe",
-                    "À l'espace, fulbe devient fulɓe et jaraama devient jaaraama. "
-                    "Retour arrière juste après annule la correction.")
+                    T("Corriger automatiquement les fautes d'orthographe", "Autocorrect misspelled words"),
+                    T("À l'espace, fulbe devient fulɓe et jaraama devient jaaraama. "
+                      "Retour arrière juste après annule la correction.",
+                      "When you press Space, fulbe becomes fulɓe and jaraama becomes jaaraama. "
+                      "Backspace right after undoes the correction."))
         self._carte(corps, "retenir_les_mots",
-                    "Retenir les mots que j'écris",
-                    "Ils sont proposés en premier, même après avoir redémarré l'ordinateur.",
-                    lien=("Oublier les mots retenus", self._oublie))
+                    T("Retenir les mots que j'écris", "Remember the words I type"),
+                    T("Ils sont proposés en premier, même après avoir redémarré l'ordinateur.",
+                      "They are suggested first, even after restarting the computer."),
+                    lien=(T("Oublier les mots retenus", "Forget remembered words"), self._oublie))
 
-        tk.Label(corps, text="Démarrage", font=police_section, bg=c["fond"], fg=c["texte"],
-                 anchor="w").pack(fill="x", pady=(14, 6))
+        tk.Label(corps, text=T("Démarrage", "Startup"), font=police_section, bg=c["fond"],
+                 fg=c["texte"], anchor="w").pack(fill="x", pady=(14, 6))
         if en_paquet():
             # Version du Microsoft Store : Windows règle lui-même son démarrage.
-            self._carte(corps, None, "Démarrer avec Windows",
-                        f"{NOM} se lance tout seul à l'ouverture de la session ; Windows le règle "
-                        "dans Paramètres > Applications > Démarrage.",
-                        lien=("Ouvrir les applications de démarrage",
+            self._carte(corps, None, T("Démarrer avec Windows", "Start with Windows"),
+                        T(f"{NOM} se lance tout seul à l'ouverture de la session ; Windows le règle "
+                          "dans Paramètres > Applications > Démarrage.",
+                          f"{NOM} starts by itself when you sign in; Windows manages this in "
+                          "Settings > Apps > Startup."),
+                        lien=(T("Ouvrir les applications de démarrage", "Open startup apps"),
                               lambda: os.startfile("ms-settings:startupapps")))
         else:
-            self._carte(corps, None, "Démarrer avec Windows",
-                        f"{NOM} se lance tout seul à l'ouverture de la session.",
+            self._carte(corps, None, T("Démarrer avec Windows", "Start with Windows"),
+                        T(f"{NOM} se lance tout seul à l'ouverture de la session.",
+                          f"{NOM} starts by itself when you sign in."),
                         valeur=demarre_avec_windows(), action=self._demarrage)
 
         self.message = tk.Label(corps, text="", font=self.police_detail, bg=c["fond"], fg=c["detail"],
-                                anchor="w")
+                                anchor="w", justify="left", wraplength=self.largeur_texte)
         self.message.pack(fill="x", pady=(10, 0))
 
         f.update_idletasks()
@@ -443,7 +478,7 @@ class FenetreParametres:
         if getattr(self, "_ajout_en_cours", False):
             return
         self._ajout_en_cours = True
-        self.message.configure(text="Ajout de FUL à Win + Espace…")
+        self.message.configure(text=T("Ajout de FUL à Win + Espace…", "Adding FUL to Win + Space…"))
         resultat = []
         threading.Thread(target=lambda: resultat.append(ajoute_ful()), daemon=True).start()
 
@@ -453,13 +488,20 @@ class FenetreParametres:
                 return
             self._ajout_en_cours = False
             if resultat[0]:
-                self.message.configure(text="FUL est dans Win + Espace : choisissez-le pour écrire en pulaar.")
+                self.message.configure(
+                    fg=self.couleurs["accent"],
+                    text=T("C'est fait. Appuyez sur Win + Espace et choisissez FUL, puis écrivez dans une "
+                           "application (Bloc-notes, Word…) : les suggestions apparaissent au-dessus du curseur.",
+                           "Done. Press Win + Space and choose FUL, then type in any app (Notepad, "
+                           "Word…): suggestions appear above the cursor."))
                 if self.carte_ful is not None:
                     self.carte_ful.destroy()
                     self.carte_ful = None
             else:
-                self.message.configure(text="FUL n'a pas pu être ajouté : Paramètres > Heure et langue "
-                                            "> Langue et région > Ajouter une langue.")
+                self.message.configure(text=T("FUL n'a pas pu être ajouté : Paramètres > Heure et langue "
+                                              "> Langue et région > Ajouter une langue.",
+                                              "FUL could not be added: Settings > Time & language > "
+                                              "Language & region > Add a language."))
         attend()
 
     def rafraichit(self):
@@ -470,14 +512,17 @@ class FenetreParametres:
     def _demarrage(self, actif):
         try:
             regle_demarrage(actif)
-            self.message.configure(text="Le clavier démarrera avec Windows." if actif
-                                   else "Le clavier ne démarrera plus avec Windows.")
+            self.message.configure(text=T("Le clavier démarrera avec Windows.",
+                                          "The keyboard will start with Windows.") if actif
+                                   else T("Le clavier ne démarrera plus avec Windows.",
+                                          "The keyboard will no longer start with Windows."))
         except OSError as e:
-            self.message.configure(text=f"Impossible de changer le démarrage : {e}")
+            self.message.configure(text=T(f"Impossible de changer le démarrage : {e}",
+                                          f"Could not change startup: {e}"))
 
     def _oublie(self):
         self.moteur.forget_learned()
-        self.message.configure(text="Les mots retenus ont été oubliés.")
+        self.message.configure(text=T("Les mots retenus ont été oubliés.", "Remembered words were forgotten."))
 
     @staticmethod
     def _barre_de_titre_sombre(fenetre, sombre):

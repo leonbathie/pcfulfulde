@@ -71,7 +71,17 @@ La version 2.6.2 demandait aussi **unvirtualizedResources**, refusée le 30/09/2
 
 ### Notes pour la certification (en anglais)
 
-> To test: launch Fulfulde Keyboard; its settings window opens. Click "Ajouter FUL à Win + Espace". Press Win + Space and choose FUL (French keyboard). In Notepad, type "fulbe " (with the space): it becomes "fulɓe". Type "jaa": a suggestion bubble appears above the cursor; press Tab to take it. With FRA or ENG selected, the keyboard is unchanged.
+Dans **Submission options > Notes for certification**. Le rapport du 01/10/2026 (10.1.2.10, « Unusable Feature: Text suggestions ») venait sans doute d'un test sans FUL choisi : ces étapes le disent pas à pas (739 caractères).
+
+```
+HOW TO TEST TEXT SUGGESTIONS. They only appear while the Pulaar input language (FUL) is selected; with English or any other input language, the app intentionally changes nothing.
+1. Launch Fulfulde Keyboard from Start. Its settings window opens (in English on an English Windows; the app also has a ɓ icon in the notification area).
+2. Click "Add FUL to Win + Space" and wait for the "Done." message (a few seconds).
+3. Open Notepad and click in the text area.
+4. Press Win + Space and select FUL (Pulaar), with either keyboard (US or French).
+5. Type jaa: a bubble with Pulaar words (jaaɓi...) appears above the cursor. Press Tab: jaaɓi is inserted.
+6. Type fulbe then Space: it is corrected to fulɓe. The keys v, z, q, x type ɓ, ɗ, ŋ, ƴ.
+```
 
 ## Après l'installation depuis le Store
 

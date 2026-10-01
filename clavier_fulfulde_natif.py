@@ -763,14 +763,14 @@ class FulfuldeEngine:
     def tray_menu(self):
         p = self.parametres
         return [
-            (f"Paramètres de {pc.NOM}…", False, self.open_settings),
+            (pc.T(f"Paramètres de {pc.NOM}…", f"{pc.NOM} settings…"), False, self.open_settings),
             None,
-            ("Suggestions de texte", p["suggestions"],
+            (pc.T("Suggestions de texte", "Text suggestions"), p["suggestions"],
              lambda: self.change_setting("suggestions", not p["suggestions"])),
-            ("Correction automatique", p["correction_automatique"],
+            (pc.T("Correction automatique", "Autocorrect"), p["correction_automatique"],
              lambda: self.change_setting("correction_automatique", not p["correction_automatique"])),
             None,
-            (f"Quitter {pc.NOM}", False, self.quit),
+            (pc.T(f"Quitter {pc.NOM}", f"Quit {pc.NOM}"), False, self.quit),
         ]
 
     # --- Suggestions et bulle ---------------------------------------------------
@@ -1330,7 +1330,8 @@ def run():
         engine.autocompleter.importe_appris(pc.lit_mots_appris())
     engine.bubble = BulleSuggestions(sur_choix=engine.choose, sur_tic=engine.watch_foreground)
     engine.bubble.regle_indice(engine.bubble_hint())
-    icone = IconeNotification(pc.ICONE, f"{pc.NOM} — lettres et suggestions pulaar",
+    icone = IconeNotification(pc.ICONE, pc.T(f"{pc.NOM} — pulaar avec FUL (Win + Espace)",
+                                             f"{pc.NOM} — Pulaar with FUL (Win + Space)"),
                               menu=engine.tray_menu, sur_clic=engine.open_settings)
 
     print("=" * 68)
