@@ -13,7 +13,7 @@
 ## 🚀 Installation (une fois)
 
 1. Lancez **`Fulfulde_Keyboard.exe`**, choisissez la langue de l'assistant (30 langues, celle de Windows proposée d'office), suivez-le et répondez **Oui** quand Windows demande l'autorisation. Python n'est pas nécessaire : le clavier est installé dans `C:\Program Files\Fulfulde Keyboard`. Une version précédente (« Clavier Pulaar ») est remplacée, avec ses réglages et vos mots retenus.
-2. Appuyez sur **Win + Espace** : **FUL** apparaît à côté de FRA et ENG, deux fois, avec le clavier Français (AZERTY) et avec le clavier Anglais (QWERTY) de Windows. Choisissez celui qui correspond à votre clavier.
+2. Appuyez sur **Win + Espace** : **FUL** apparaît à côté de vos langues, avec les claviers que vous avez déjà : Français (AZERTY), Anglais (QWERTY), ou les deux, dans le même ordre. Avec FRA et ENG, il apparaît deux fois : choisissez celui qui correspond à votre clavier.
 3. Le clavier démarre aussitôt, puis à chaque ouverture de session. Son icône **ɓ** se trouve près de l'horloge.
 
 Pour tout retirer : **Paramètres > Applications > Fulfulde Keyboard > Désinstaller**.
@@ -21,7 +21,7 @@ Pour tout retirer : **Paramètres > Applications > Fulfulde Keyboard > Désinsta
 L'assistant lance `installer_clavier_pulaar.ps1`, en trois parties :
 - les claviers « Pulaar (Fulfulde) AZERTY / QWERTY » des versions précédentes quittent d'abord la liste Win + Espace. Le sélecteur Win + Espace de Windows 11 (`InputSwitch.dll`) plantait sur eux et emportait l'Explorateur : depuis la version 24H2, il ne connaît que les dispositions de Windows ;
 - (administrateur) leurs dispositions (`00000867`, `a0010867`) et leurs fichiers (`fulffaz.dll`, `fulffqw.dll`) sont effacés, et la disposition Wolof de Windows, que les anciens installateurs avaient remplacée, est rendue ;
-- FUL (Pulaar, `ff-Latn-SN`) revient dans Win + Espace avec les claviers Français et Anglais de Windows ; c'est le moteur qui place les lettres pulaar. Le correcteur orthographique est enregistré et le clavier démarre avec Windows.
+- FUL (Pulaar, `ff-Latn-SN`) revient dans Win + Espace avec vos claviers Français (AZERTY) ou Anglais (QWERTY) de Windows ; c'est le moteur qui place les lettres pulaar. Le correcteur orthographique est enregistré et le clavier démarre avec Windows.
 
 > `Setup_Clavier_Fulfulde.exe` est l'**ancien** installateur : ne l'utilisez plus. Il remplaçait la disposition Wolof de Windows et réutilisait un *Layout Id* déjà pris, ce qui faisait planter Win + Espace.
 
@@ -123,7 +123,7 @@ Avec Français ou Anglais, les touches restent toujours celles de Windows (v don
 
 **Ctrl + Shift + A** active ou désactive les suggestions.
 
-Dans Win + Espace, FUL utilise les claviers Français et Anglais de Windows. `generate_klc.py` et `installateur\compiler_dispositions.ps1` fabriquent encore les anciennes dispositions `fulffaz.dll` et `fulffqw.dll` (Microsoft Keyboard Layout Creator), mais l'installateur ne les inscrit plus : le sélecteur Win + Espace de Windows 11 plantait sur elles.
+Dans Win + Espace, FUL utilise les claviers Français et Anglais de Windows : ceux que l'on a déjà, dans le même ordre (Anglais seul sur un Windows anglais). Sur un clavier physique QWERTY, FUL (Français) ferait taper « jŋŋ » pour « jaa ». `generate_klc.py` et `installateur\compiler_dispositions.ps1` fabriquent encore les anciennes dispositions `fulffaz.dll` et `fulffqw.dll` (Microsoft Keyboard Layout Creator), mais l'installateur ne les inscrit plus : le sélecteur Win + Espace de Windows 11 plantait sur elles.
 
 ---
 

@@ -2,7 +2,8 @@
 #  Installe Fulfulde Keyboard (clavier pulaar)
 # ============================================================
 #  FUL (Pulaar, ff-Latn-SN) apparait dans Win + Espace avec deux claviers de
-#  Windows : Francais (AZERTY) et Anglais (QWERTY). Quand FUL est choisi, le
+#  Windows, ceux de l'utilisateur : Francais (AZERTY), Anglais (QWERTY) ou les
+#  deux (Get-ClaviersFul). Quand FUL est choisi, le
 #  moteur place lui-meme les lettres pulaar (v -> ɓ, z -> ɗ, q -> ŋ, x -> ƴ).
 #  Avec Francais ou Anglais, rien ne change.
 #
@@ -32,8 +33,14 @@ $ici = Split-Path -Parent $PSCommandPath
 $exe = Join-Path $ici 'FulfuldeKeyboard.exe'
 $empaquete = Test-Path $exe
 $base = 'HKLM:\SYSTEM\CurrentControlSet\Control\Keyboard Layouts'
-# Les claviers de FUL : ceux de Windows, Francais (AZERTY) et Anglais (QWERTY).
-$claviersFul = @('0867:0000040C', '0867:00000409')
+# Les claviers de FUL : ceux de Windows, Francais (AZERTY) et Anglais (QWERTY),
+# selon ceux de l'utilisateur (Get-ClaviersFul).
+$fulAzerty = '0867:0000040C'
+$fulQwerty = '0867:00000409'
+# Dispositions de l'utilisateur rangees AZERTY (Francais, Belge) ou QWERTY
+# (Etats-Unis, international, Royaume-Uni, Canada multilingue).
+$dispositionsAzerty = @('0000040C', '0000080C', '0001080C', '00000813')
+$dispositionsQwerty = @('00000409', '00020409', '00010409', '00000809', '00011009', '00001009')
 # Les anciennes dispositions : 00000867 (AZERTY), a0010867 (QWERTY), a0000867.
 $anciennesDispositions = @('00000867', 'a0010867', 'a0000867')
 $anciensFichiers = @('fulffaz.dll', 'fulffqw.dll', 'kbdfulfa.dll', 'kbdfulfq.dll')
@@ -133,7 +140,7 @@ function Install-Machine {
     if (-not (Test-Path $cleDesinstallation)) { New-Item -Path $cleDesinstallation -Force | Out-Null }
     $desinstaller = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$ici\desinstaller_clavier_pulaar.ps1`""
     Set-ItemProperty $cleDesinstallation -Name 'DisplayName' -Value 'Fulfulde Keyboard'
-    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.6.4'
+    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.6.5'
     Set-ItemProperty $cleDesinstallation -Name 'Publisher' -Value 'Taro Learning'
     Set-ItemProperty $cleDesinstallation -Name 'DisplayIcon' -Value "$ici\icones\clavier_pulaar.ico"
     Set-ItemProperty $cleDesinstallation -Name 'InstallLocation' -Value $ici
@@ -142,16 +149,37 @@ function Install-Machine {
     Set-ItemProperty $cleDesinstallation -Name 'NoRepair' -Value 1 -Type DWord
 }
 
+function Get-ClaviersFul($liste) {
+    # Les claviers de FUL suivent ceux de l'utilisateur, dans son ordre :
+    # Francais (AZERTY) s'il ecrit en AZERTY, Anglais (QWERTY) s'il ecrit en
+    # QWERTY, Anglais sinon. Sur un Windows anglais (QWERTY), FUL (Francais)
+    # en tete faisait taper « jŋŋ » pour « jaa » : la touche A d'un clavier
+    # QWERTY donne q en AZERTY (certification du Microsoft Store, 01/10/2026).
+    $claviers = New-Object System.Collections.Generic.List[string]
+    foreach ($langue in $liste) {
+        if ($langue.LanguageTag -like 'ff-*') { continue }
+        foreach ($tip in $langue.InputMethodTips) {
+            $disposition = ([string]$tip -split ':')[-1].ToUpper()
+            $clavier = if ($dispositionsAzerty -contains $disposition) { $fulAzerty }
+                       elseif ($dispositionsQwerty -contains $disposition) { $fulQwerty }
+            if ($clavier -and -not $claviers.Contains($clavier)) { $claviers.Add($clavier) }
+        }
+    }
+    if ($claviers.Count -eq 0) { $claviers.Add($fulQwerty) }
+    , $claviers.ToArray()
+}
+
 function Install-Utilisateur {
     Write-Host '[3/3] FUL (Pulaar) dans Win + Espace...' -ForegroundColor Yellow
     $liste = Get-WinUserLanguageList
+    $claviersFul = Get-ClaviersFul $liste
     $pulaar = $liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' } | Select-Object -First 1
     if (-not $pulaar) {
         $liste.Add('ff-Latn-SN')
         $pulaar = $liste | Where-Object { $_.LanguageTag -like 'ff-Latn*' } | Select-Object -First 1
     }
-    # La langue arrive avec le clavier Wolof de Windows : Francais (AZERTY) et
-    # Anglais (QWERTY) a sa place, ceux que l'on a deja sous les doigts.
+    # La langue arrive avec le clavier Wolof de Windows : a sa place, ceux que
+    # l'on a deja sous les doigts (Get-ClaviersFul).
     $pulaar.InputMethodTips.Clear()
     foreach ($tip in $claviersFul) { $pulaar.InputMethodTips.Add($tip) }
     Set-WinUserLanguageList $liste -Force

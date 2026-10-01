@@ -5,12 +5,12 @@
 ;  L'assistant copie le clavier dans Program Files, puis lance
 ;  installer_clavier_pulaar.ps1 en trois parties : retrait des anciens claviers
 ;  Pulaar de Win + Espace, effacement de leurs dispositions (administrateur),
-;  puis FUL (Pulaar) dans Win + Espace avec les claviers Français et Anglais de
+;  puis FUL (Pulaar) dans Win + Espace avec les claviers Français ou Anglais de
 ;  Windows, le correcteur orthographique et le moteur, qui place lui-même les
 ;  lettres pulaar quand FUL est choisi.
 
 #define Nom "Fulfulde Keyboard"
-#define Version "2.6.4"
+#define Version "2.6.5"
 #define Racine ".."
 
 [Setup]

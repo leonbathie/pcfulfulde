@@ -5,7 +5,7 @@ Moteur de Fulfulde Keyboard, le clavier pulaar pour Windows, comme les claviers 
 - Comme les claviers de Microsoft : il agit quand FUL (Pulaar) est choisi dans
   Win + Espace, et place lui-même les lettres pulaar (v -> ɓ, z -> ɗ, q -> ŋ,
   x -> ƴ, ^ ou [ -> ñ) ; avec Français ou Anglais, il se tait. FUL figure dans
-  Win + Espace avec les claviers Français et Anglais de Windows : les nôtres
+  Win + Espace avec les claviers Français ou Anglais de Windows : les nôtres
   (versions précédentes) faisaient planter le sélecteur de Windows 11.
   Avec Français ou Anglais, il ne change jamais rien : aucun réglage ne l'y rend actif.
 - Bulle de suggestions au-dessus du curseur de texte, comme Windows 11 : le mot

@@ -46,7 +46,7 @@ Get-AppxPackage *.FulfuldeKeyboard | Remove-AppxPackage
 >
 > Avec Français ou Anglais, votre clavier ne change pas. Fonctionne dans Word, Chrome, Edge, WhatsApp, Telegram, le Bloc-notes… Le correcteur orthographique pulaar souligne les fautes dans Edge et Chrome.
 >
-> Au premier lancement, le bouton « Ajouter FUL à Win + Espace » ajoute la langue pulaar avec les claviers Français (AZERTY) et Anglais (QWERTY) de Windows. Tout reste sur votre ordinateur : rien n'est envoyé sur Internet.
+> Au premier lancement, le bouton « Ajouter FUL à Win + Espace » ajoute la langue pulaar avec votre clavier Français (AZERTY) ou Anglais (QWERTY) de Windows. Tout reste sur votre ordinateur : rien n'est envoyé sur Internet.
 
 ### Fonctionnalités (une par ligne)
 
@@ -71,16 +71,16 @@ La version 2.6.2 demandait aussi **unvirtualizedResources**, refusée le 30/09/2
 
 ### Notes pour la certification (en anglais)
 
-Dans **Submission options > Notes for certification**. Le rapport du 01/10/2026 (10.1.2.10, « Unusable Feature: Text suggestions ») venait sans doute d'un test sans FUL choisi : ces étapes le disent pas à pas (739 caractères).
+Dans **Submission options > Notes for certification** (822 caractères). Les rapports du 01/10/2026 (10.1.2.10, « Text suggestions », puis « Provide suggestions for letter changes ») venaient de FUL (Français, AZERTY) sur le clavier QWERTY d'un Surface Laptop : « jaa » y devenait « jŋŋ ». Depuis la 2.6.5, FUL prend les claviers de l'utilisateur (Anglais seul sur un Windows anglais), et les notes font taper « hol » et « fulb », pareils en AZERTY et en QWERTY.
 
 ```
 HOW TO TEST TEXT SUGGESTIONS. They only appear while the Pulaar input language (FUL) is selected; with English or any other input language, the app intentionally changes nothing.
 1. Launch Fulfulde Keyboard from Start. Its settings window opens (in English on an English Windows; the app also has a ɓ icon in the notification area).
-2. Click "Add FUL to Win + Space" and wait for the "Done." message (a few seconds).
+2. Click "Add FUL to Win + Space" and wait for the "Done." message (a few seconds). On an English Windows, FUL gets the US keyboard.
 3. Open Notepad and click in the text area.
-4. Press Win + Space and select FUL (Pulaar), with either keyboard (US or French).
-5. Type jaa: a bubble with Pulaar words (jaaɓi...) appears above the cursor. Press Tab: jaaɓi is inserted.
-6. Type fulbe then Space: it is corrected to fulɓe. The keys v, z, q, x type ɓ, ɗ, ŋ, ƴ.
+4. Press Win + Space and select FUL (Fulah/Pulaar).
+5. Type hol: a bubble with Pulaar words (holi, holi ko, holli) appears above the cursor. Press Tab: the highlighted word is inserted.
+6. Type fulb: the bubble suggests fulɓe. Type fulbe then Space: it is corrected to fulɓe. The keys v, z, q, x type ɓ, ɗ, ŋ, ƴ.
 ```
 
 ## Après l'installation depuis le Store

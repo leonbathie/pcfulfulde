@@ -88,8 +88,8 @@ def ful_dans_win_espace():
 
 
 def ajoute_ful():
-    """Ajoute FUL (Pulaar) à Win + Espace, avec les claviers Français et Anglais
-    de Windows, et enregistre le correcteur orthographique : la partie
+    """Ajoute FUL (Pulaar) à Win + Espace, avec les claviers Français (AZERTY)
+    ou Anglais (QWERTY) de Windows que l'on a déjà, et enregistre le correcteur orthographique : la partie
     utilisateur de l'installateur, sans relancer le moteur. Sert à la version du
     Microsoft Store, qui n'a pas d'installateur. Rend vrai si FUL y est ensuite."""
     script = os.path.join(DOSSIER_PROGRAMME, "installer_clavier_pulaar.ps1")
@@ -374,10 +374,10 @@ class FenetreParametres:
             self.carte_ful = self._carte(
                 corps, None, T("FUL (Pulaar) n'est pas encore dans Win + Espace",
                                "FUL (Pulaar) is not in Win + Space yet"),
-                T("Ajoutez-le pour écrire en pulaar : FUL, avec les claviers Français (AZERTY) et "
-                  "Anglais (QWERTY) de Windows, et le correcteur orthographique pulaar.",
-                  "Add it to type in Pulaar: FUL, with the built-in French (AZERTY) and English "
-                  "(QWERTY) keyboards, and the Pulaar spell checker."),
+                T("Ajoutez-le pour écrire en pulaar : FUL, avec votre clavier, Français (AZERTY) "
+                  "ou Anglais (QWERTY), et le correcteur orthographique pulaar.",
+                  "Add it to type in Pulaar: FUL, with your own keyboard, English (QWERTY) or "
+                  "French (AZERTY), and the Pulaar spell checker."),
                 lien=(T("Ajouter FUL à Win + Espace", "Add FUL to Win + Space"), self._ajoute_ful))
         # Les lettres et les suggestions ne viennent qu'avec FUL : la carte le dit
         # toujours, en tête (la certification du Store l'avait cherché, 01/10/2026).
