@@ -1312,7 +1312,12 @@ def _journal_si_sans_console():
 
 def run():
     from bulle_suggestions import BulleSuggestions, active_dpi
-    from zone_notification import IconeNotification
+    from zone_notification import IconeNotification, ouvre_instance_en_cours
+
+    # --demarrage : lancé avec Windows (tâche de démarrage du paquet, clé Run),
+    # le clavier reste discret. Sans lui (menu Démarrer, « Ouvrir » du
+    # Microsoft Store), il montre ses paramètres comme toute application.
+    au_demarrage = "--demarrage" in sys.argv[1:]
 
     # Avant d'ouvrir le journal : le dossier de « Clavier Pulaar » (2.4.1 et avant)
     # devient celui de Fulfulde Keyboard, avec les réglages et les mots retenus.
@@ -1320,7 +1325,12 @@ def run():
     _journal_si_sans_console()
     print(f"--- {time.strftime('%Y-%m-%d %H:%M:%S')} {pc.NOM}")
     if not _seule_instance():
-        print(f"{pc.NOM} tourne déjà : voir son icône près de l'horloge.")
+        # Le premier lancement garde la main ; « Ouvrir » ne doit pas sembler
+        # sans effet : il lui demande d'ouvrir ses paramètres.
+        if not au_demarrage and ouvre_instance_en_cours():
+            print(f"{pc.NOM} tourne déjà : ses paramètres s'ouvrent.")
+        else:
+            print(f"{pc.NOM} tourne déjà : voir son icône près de l'horloge.")
         return
 
     # Avant toute fenêtre : coordonnées en pixels réels pour placer la bulle
@@ -1365,6 +1375,8 @@ def run():
         # paramètres propose de l'ajouter, une fois (version du Microsoft Store,
         # ou FUL retiré de la liste).
         engine.parametres["ful_propose"] = True
+        engine.open_settings()
+    elif not au_demarrage:
         engine.open_settings()
     try:
         engine.bubble.lance()

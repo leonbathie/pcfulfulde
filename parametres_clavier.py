@@ -198,14 +198,15 @@ def oublie_mots_appris():
 
 
 def commande_de_demarrage():
-    """Le clavier démarre sans fenêtre noire : FulfuldeKeyboard.exe une fois installé, pythonw sinon."""
+    """Le clavier démarre sans fenêtre noire : FulfuldeKeyboard.exe une fois installé, pythonw sinon.
+    --demarrage : il reste discret, sans ouvrir ses paramètres."""
     if getattr(sys, "frozen", False):
-        return f'"{sys.executable}"'
+        return f'"{sys.executable}" --demarrage'
     pythonw = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
     if not os.path.exists(pythonw):
         pythonw = sys.executable
     script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "clavier_fulfulde_natif.py")
-    return f'"{pythonw}" "{script}"'
+    return f'"{pythonw}" "{script}" --demarrage'
 
 
 def demarre_avec_windows():

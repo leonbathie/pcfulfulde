@@ -140,7 +140,7 @@ function Install-Machine {
     if (-not (Test-Path $cleDesinstallation)) { New-Item -Path $cleDesinstallation -Force | Out-Null }
     $desinstaller = "powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$ici\desinstaller_clavier_pulaar.ps1`""
     Set-ItemProperty $cleDesinstallation -Name 'DisplayName' -Value 'Fulfulde Keyboard'
-    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.6.5'
+    Set-ItemProperty $cleDesinstallation -Name 'DisplayVersion' -Value '2.6.6'
     Set-ItemProperty $cleDesinstallation -Name 'Publisher' -Value 'Taro Learning'
     Set-ItemProperty $cleDesinstallation -Name 'DisplayIcon' -Value "$ici\icones\clavier_pulaar.ico"
     Set-ItemProperty $cleDesinstallation -Name 'InstallLocation' -Value $ici
@@ -205,8 +205,9 @@ function Install-Utilisateur {
     # L'ancien nom (versions 2.4.1 et avant) quitte les applications de demarrage.
     Remove-ItemProperty $demarrage -Name 'ClavierPulaar' -ErrorAction SilentlyContinue
     if ($empaquete) {
-        Set-ItemProperty $demarrage -Name 'FulfuldeKeyboard' -Value "`"$exe`""
-        Start-Process $exe
+        # --demarrage : discret, sans ouvrir ses parametres (le Setup les montre deja).
+        Set-ItemProperty $demarrage -Name 'FulfuldeKeyboard' -Value "`"$exe`" --demarrage"
+        Start-Process $exe -ArgumentList '--demarrage'
         Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
         return
     }
@@ -222,8 +223,8 @@ function Install-Utilisateur {
         & $python -m pip install --user pynput
     }
     $script = Join-Path $ici 'clavier_fulfulde_natif.py'
-    Set-ItemProperty $demarrage -Name 'FulfuldeKeyboard' -Value "`"$pythonw`" `"$script`""
-    Start-Process $pythonw -ArgumentList "`"$script`""
+    Set-ItemProperty $demarrage -Name 'FulfuldeKeyboard' -Value "`"$pythonw`" `"$script`" --demarrage"
+    Start-Process $pythonw -ArgumentList "`"$script`" --demarrage"
     Write-Host '      Lance, et demarrera avec Windows (icone pres de l horloge).' -ForegroundColor Green
 }
 

@@ -4,7 +4,8 @@
 Icône de Fulfulde Keyboard dans la zone de notification, près de l'horloge.
 
 Clic : ouvre les paramètres. Clic droit : menu (Paramètres, Suggestions,
-Correction automatique, Quitter).
+Correction automatique, Quitter). Un second lancement du clavier (menu
+Démarrer, « Ouvrir » du Microsoft Store) les ouvre aussi : ouvre_instance_en_cours.
 
 L'icône vit sur son propre fil, avec une fenêtre cachée et sa boucle de
 messages Windows. Les actions du menu sont des fonctions fournies par le
@@ -39,6 +40,10 @@ LR_LOADFROMFILE = 0x10
 LR_DEFAULTSIZE = 0x40
 SM_CXSMICON, SM_CYSMICON = 49, 50
 IDI_APPLICATION = 32512
+ASFW_ANY = -1
+CLASSE = "ClavierPulaarNotification"
+# Message qu'un second lancement envoie au clavier déjà lancé.
+MESSAGE_OUVRE = "FulfuldeKeyboard.OuvreLesParametres"
 
 
 class WNDCLASSEXW(ctypes.Structure):
@@ -88,6 +93,9 @@ user32.TrackPopupMenu.argtypes = [wintypes.HMENU, wintypes.UINT, ctypes.c_int, c
                                   ctypes.c_int, wintypes.HWND, wintypes.LPVOID]
 user32.DestroyMenu.argtypes = [wintypes.HMENU]
 user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+user32.FindWindowW.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR]
+user32.FindWindowW.restype = wintypes.HWND
+user32.AllowSetForegroundWindow.argtypes = [wintypes.DWORD]
 user32.GetCursorPos.argtypes = [ctypes.POINTER(wintypes.POINT)]
 shell32.Shell_NotifyIconW.argtypes = [wintypes.DWORD, ctypes.POINTER(NOTIFYICONDATAW)]
 kernel32.GetModuleHandleW.argtypes = [wintypes.LPCWSTR]
@@ -110,6 +118,7 @@ class IconeNotification:
         # Windows envoie déjà des messages pendant CreateWindowExW, avant que la
         # boucle n'ait tout préparé.
         self._barre_recreee = None
+        self._ouvre = None
         self._icone = None
         self._pret = threading.Event()
         self._fil = threading.Thread(target=self._boucle, name="icone-notification", daemon=True)
@@ -130,12 +139,13 @@ class IconeNotification:
         classe.cbSize = ctypes.sizeof(WNDCLASSEXW)
         classe.lpfnWndProc = self._wndproc
         classe.hInstance = instance
-        classe.lpszClassName = "ClavierPulaarNotification"
+        classe.lpszClassName = CLASSE
         user32.RegisterClassExW(ctypes.byref(classe))
         self.hwnd = user32.CreateWindowExW(0, classe.lpszClassName, "Fulfulde Keyboard", 0,
                                            0, 0, 0, 0, None, None, instance, None)
         # Explorer redémarré : la barre des tâches renaît vide, on y remet l'icône.
         self._barre_recreee = user32.RegisterWindowMessageW("TaskbarCreated")
+        self._ouvre = user32.RegisterWindowMessageW(MESSAGE_OUVRE)
         self._icone = self._charge_icone()
         self._notifie(NIM_ADD)
         self._pret.set()
@@ -177,6 +187,9 @@ class IconeNotification:
             if message == self._barre_recreee:
                 self._notifie(NIM_ADD)
                 return 0
+            if message == self._ouvre and self._ouvre:
+                self.sur_clic()
+                return 0
             if message == WM_CLOSE:
                 user32.DestroyWindow(hwnd)
                 return 0
@@ -208,3 +221,13 @@ class IconeNotification:
         user32.DestroyMenu(hmenu)
         if choix and entrees[choix - 1] is not None:
             entrees[choix - 1][2]()
+
+
+def ouvre_instance_en_cours():
+    """Demande au clavier déjà lancé d'ouvrir ses paramètres. Vrai s'il a été trouvé."""
+    hwnd = user32.FindWindowW(CLASSE, None)
+    if not hwnd:
+        return False
+    # Ce lancement vient de l'utilisateur : la fenêtre de l'autre peut passer devant.
+    user32.AllowSetForegroundWindow(ASFW_ANY & 0xFFFFFFFF)
+    return bool(user32.PostMessageW(hwnd, user32.RegisterWindowMessageW(MESSAGE_OUVRE), 0, 0))

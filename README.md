@@ -86,7 +86,7 @@ La seconde commande vérifie le correcteur en passant par le service de Windows,
 
 ### Paramètres
 
-Cliquez sur l'icône **ɓ** près de l'horloge. Une fenêtre semblable à la page « Saisie » de Windows s'ouvre ; elle rappelle en tête qu'il faut choisir FUL avec Win + Espace. Elle est en français si Windows l'est, en anglais sinon (comme le menu de l'icône). Elle a des interrupteurs pour :
+Cliquez sur l'icône **ɓ** près de l'horloge, ou ouvrez Fulfulde Keyboard depuis le menu Démarrer (ou « Ouvrir » dans le Microsoft Store) : lancé avec Windows, le clavier reste discret ; ouvert à la main, il montre ses paramètres, même s'il tourne déjà. Une fenêtre semblable à la page « Saisie » de Windows s'ouvre ; elle rappelle en tête qu'il faut choisir FUL avec Win + Espace. Elle est en français si Windows l'est, en anglais sinon (comme le menu de l'icône). Elle a des interrupteurs pour :
 - les suggestions de texte, et leur choix avec les flèches ;
 - la correction automatique ;
 - les mots retenus ;
